@@ -11,6 +11,7 @@ public class CookieUtil {
     public void addTo(HttpServletResponse response, String name, String value, CookieOption option) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(option.isHttpOnly());
+        cookie.setMaxAge(option.getMaxAge());
         cookie.setSecure(option.isSecure());
         cookie.setPath(option.getPath());
         response.addCookie(cookie);

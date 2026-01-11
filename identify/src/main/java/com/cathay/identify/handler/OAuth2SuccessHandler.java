@@ -42,11 +42,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         AccountEntity account = accRepo.findAccountByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         RefreshTokenResponse tokens = rfSer.createRefreshToken(account.getId());
-        AuthenticationResponse authAcc = AuthenticationResponse
-                .builder()
-                .token(tokens.getAccess_token())
-                .authenticated(account)
-                .build();
         CookieOption acOption = CookieOption.builder()
                 .httpOnly(false)
                 .maxAge(15 * 60)
