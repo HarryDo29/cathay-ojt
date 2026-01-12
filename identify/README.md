@@ -10,8 +10,8 @@
 ## 📑 Mục lục
 - [Tính năng](#tính-năng)
 - [Mô hình dữ liệu](#mô-hình-dữ-liệu)
-- [Biến môi trường](#biến-môi-trường-quan-trọng)
-- [Danh sách API](#danh-sách-api-chính)
+- [Biến môi trường](#biến-môi-trường)
+- [Danh sách API](#danh-sách-api)
 - [Cài đặt & Chạy](#cài-đặt--chạy)
 
 ## 🚀 Tính năng
