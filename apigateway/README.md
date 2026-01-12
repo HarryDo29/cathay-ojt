@@ -7,11 +7,11 @@
 > Đây là công vào duy nhất (Entry Point) của toàn hệ thống. Với nhiệm vụ điều hướng request , xác thực token (AuthenticateGatewayFilter) trước khi request đến các microservices phía sau.
 
 ## 📑 Mục lục
-- [Kiến trúc định tuyến](#-kiến-trúc-định-tuyến)
-- [Tính năng Gateway](#-tính-năng-gateway)
-- [Cấu hình Routes](#-cấu-hình-routes)
-- [Yêu cầu Request](#-yêu-cầu-request)
-- [Cài đặt & Chạy](#-cài-đặt--chạy)
+- [Kiến trúc định tuyến](#kiến-trúc-định-tuyến)
+- [Tính năng Gateway](#tính-năng-gateway)
+- [Cấu hình Routes](#cấu-hình-routes)
+- [Yêu cầu Request](#yêu-cầu-request)
+- [Cài đặt & Chạy](#cài-đặt--chạy)
 
 
 ## Kiến trúc định tuyến
