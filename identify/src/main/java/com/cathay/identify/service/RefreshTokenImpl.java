@@ -9,7 +9,7 @@ import com.cathay.identify.interfaces.RefreshTokenService;
 import com.cathay.identify.properties.RefreshTokenProperties;
 import com.cathay.identify.repository.AccountRepository;
 import com.cathay.identify.repository.RefreshTokenRepository;
-import com.cathay.identify.util.JwtUtil;
+import com.cathay.identify.security.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +30,7 @@ public class RefreshTokenImpl implements RefreshTokenService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Map<String, String> claim = Map.of(
                 "email", acc.getEmail(),
-                "role", acc.getRole().toString());
+                "role", acc.getRole().name());
         String access_token = jwtUtil.buildToken(claim, account_id);
         String refresh_token = jwtUtil.buildToken(claim, account_id, rfProps.getExpire(), rfProps.getSecret());
         RefreshTokenEntity rf = RefreshTokenEntity.builder()

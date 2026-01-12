@@ -1,4 +1,4 @@
-package com.cathay.identify.util.Cookie;
+package com.cathay.identify.security.util.Cookie;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;

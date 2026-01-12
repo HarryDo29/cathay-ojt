@@ -1,4 +1,4 @@
-package com.cathay.identify.util.Cookie;
+package com.cathay.identify.security.util.Cookie;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

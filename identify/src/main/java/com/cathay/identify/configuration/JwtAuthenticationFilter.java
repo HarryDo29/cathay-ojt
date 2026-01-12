@@ -1,6 +1,6 @@
 package com.cathay.identify.configuration;
 
-import com.cathay.identify.util.JwtUtil;
+import com.cathay.identify.security.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

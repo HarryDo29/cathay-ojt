@@ -1,4 +1,4 @@
-package com.cathay.identify.util;
+package com.cathay.identify.security.util;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

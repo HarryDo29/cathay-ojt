@@ -38,9 +38,7 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
             HttpServletResponse res,
             FilterChain filterChain
     ) throws ServletException, IOException {
-
         String path = req.getRequestURI();
-        System.out.println("path: " + path);
 
         // Check API key FIRST
         // Take internal API key from header (all endpoint go from apigateway must have API key)
@@ -85,7 +83,6 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
                 .anyMatch(path::startsWith);
 
         if (isPublicEndpoint) {
-            log.info("📂 Public endpoint accessed: {}", path);
             // Public endpoint do not have authentication, go through
             filterChain.doFilter(req, res);
             return;
@@ -110,7 +107,6 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
             // Push into SecurityContext
             SecurityContextHolder.getContext().setAuthentication(authToken);
-            log.debug("✅ Authenticated user: {} with role: {}", email, role);
         }
         
         // Continue filter chain

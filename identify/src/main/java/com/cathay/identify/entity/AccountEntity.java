@@ -27,7 +27,7 @@ public class AccountEntity {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "hash_password", nullable = false)
+    @Column(name = "hash_password", nullable = true)
     private String hash_password;
 
     @Column(name = "phone")

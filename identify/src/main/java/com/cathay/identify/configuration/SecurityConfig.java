@@ -1,10 +1,12 @@
 package com.cathay.identify.configuration;
 
-import com.cathay.identify.handler.OAuth2SuccessHandler;
-import com.cathay.identify.service.CustomOAuth2UserService;
+import com.cathay.identify.security.handler.OAuth2SuccessHandler;
+import com.cathay.identify.security.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -52,12 +54,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+    public AuthenticationManager authenticationManager (AuthenticationConfiguration config){
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authorizeHttpRequests(req -> req
                         // Public endpoints do not need JWT
                         // but still have api key (checked in InternalApiKeyFilter)
@@ -66,17 +74,19 @@ public class SecurityConfig {
                         // Protected endpoints have to authenticate
                         .anyRequest().authenticated()
                 )
+
                 .oauth2Login(oauth2 -> oauth2
                         .redirectionEndpoint(redirection -> redirection
                                 .baseUri("/login/oauth2/code/*"))  // Accept standard pattern
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler))
+
                 // InternalApiKeyFilter checked all requests
                 .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter.class);
 //                // JwtAuthenticationFilter (fallback - nhưng giờ không bao giờ chạy đến)
 //                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+        return httpSecurity.build();
     }
 
 

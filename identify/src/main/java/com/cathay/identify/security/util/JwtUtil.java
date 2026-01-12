@@ -1,4 +1,4 @@
-package com.cathay.identify.util;
+package com.cathay.identify.security.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

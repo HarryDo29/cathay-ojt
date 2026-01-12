@@ -8,7 +8,7 @@ import com.cathay.identify.entity.AccountEntity;
 import com.cathay.identify.exception.AppException;
 import com.cathay.identify.exception.ErrorCode;
 import com.cathay.identify.service.AccountServiceImpl;
-import com.cathay.identify.util.SecurityUtil;
+import com.cathay.identify.security.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.val;

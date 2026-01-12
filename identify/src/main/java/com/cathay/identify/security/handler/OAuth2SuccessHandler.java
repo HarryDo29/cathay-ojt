@@ -1,15 +1,13 @@
-package com.cathay.identify.handler;
+package com.cathay.identify.security.handler;
 
-import com.cathay.identify.dto.response.account.AuthenticationResponse;
 import com.cathay.identify.dto.response.refreshToken.RefreshTokenResponse;
 import com.cathay.identify.entity.AccountEntity;
 import com.cathay.identify.exception.AppException;
 import com.cathay.identify.exception.ErrorCode;
 import com.cathay.identify.repository.AccountRepository;
 import com.cathay.identify.service.RefreshTokenImpl;
-import com.cathay.identify.util.Cookie.CookieOption;
-import com.cathay.identify.util.Cookie.CookieUtil;
-import com.cathay.identify.util.JwtUtil;
+import com.cathay.identify.security.util.Cookie.CookieOption;
+import com.cathay.identify.security.util.Cookie.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +46,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .secure(false)
                 .path("/")
                 .build();
-        cookieUtil.addTo(response, "access_token", tokens.getRefresh_token(), acOption);
+        cookieUtil.addTo(response, "access_token", tokens.getAccess_token(), acOption);
         CookieOption rfOption = CookieOption.builder()
                 .httpOnly(true)
-                .maxAge(15 * 60)
+                .maxAge(30 * 24 * 60 * 60)
                 .secure(false)
                 .path("/")
                 .build();

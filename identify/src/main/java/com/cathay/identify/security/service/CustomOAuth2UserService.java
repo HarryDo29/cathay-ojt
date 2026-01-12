@@ -1,4 +1,4 @@
-package com.cathay.identify.service;
+package com.cathay.identify.security.service;
 
 import com.cathay.identify.entity.AccountEntity;
 import com.cathay.identify.repository.AccountRepository;
