@@ -2,6 +2,7 @@
 **/secret.properties
 apigateway/secret.properties
 identify/secret.properties
+chatbot/secret.properties
 
 # Gradle
 .gradle/

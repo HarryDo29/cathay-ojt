@@ -39,7 +39,16 @@ services:
       retries: 5 # retries time to check healthcheck
 
   cathay-ollama:
-    
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-
+    # tạm thời ollama chỉ chạy phiên bản cpu only không có gpu
+
 volumes:
   identify_pg_data:
   chatbot_pgvector_data:  
+  ollama_data:
