@@ -1,13 +1,15 @@
 package com.cathay.apigateway.filter;
+
 import com.cathay.apigateway.service.EndpointRegisterService;
+import com.cathay.apigateway.util.ErrorHandler;
 import com.cathay.apigateway.util.JwtUtil;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Claims;
 import lombok.NonNull;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -18,15 +20,19 @@ import java.util.List;
 
 @Component
 public class AuthenticationGatewayFilterFactory extends
-        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config> {
+        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config>
+        implements Ordered {
 
     private final EndpointRegisterService endpointRegisterService;
     private final JwtUtil jwtUtil;
+    private final ErrorHandler errorHandler;
 
-    public AuthenticationGatewayFilterFactory(EndpointRegisterService endpointRegisterService, JwtUtil jwtUtil) {
-        super(Config.class); // <--- DÒNG QUAN TRỌNG NHẤT: Báo cho lớp cha biết Config class
+    public AuthenticationGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
+                                              JwtUtil jwtUtil, ErrorHandler errorHandler) {
+        super(Config.class);
         this.endpointRegisterService = endpointRegisterService;
         this.jwtUtil = jwtUtil;
+        this.errorHandler = errorHandler;
     }
 
     @Value("${internal.api.key}")
@@ -36,60 +42,70 @@ public class AuthenticationGatewayFilterFactory extends
     public @NonNull GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             val path = exchange.getRequest().getURI().getPath();
-            if (!endpointRegisterService.isPublic(path)){
-                try {
-                    List<String> authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION);
-                    if (authHeader == null || authHeader.isEmpty()) {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return exchange.getResponse().setComplete();
-                    }
 
-                    // validate authorization (`Bearer ...` ?) ()
-                    if (!authHeader.getFirst().startsWith("Bearer ")) {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return exchange.getResponse().setComplete();
-                    }
-                    // Extract and verify JWT token
-                    val claim = jwtUtil.extractToken(authHeader.getFirst().substring(7));
-                    // check expiration
-                    val expiration = claim.getExpiration();
-                    if (expiration.before(new Date())) {
-                        throw new RuntimeException("Access Token is expired!!");
-                    }
-
-                    // take account in4 from token
-                    String account_id = claim.getSubject();
-                    String email = jwtUtil.extractClaim(
-                            claim, claims -> claims.get("email", String.class));
-                    String role = jwtUtil.extractClaim(
-                            claim, claims -> claims.get("role", String.class));
-
-                    // Create new request with header contain account in4 and internal API key
-                    ServerHttpRequest req = exchange.getRequest()
-                            .mutate()
-                            .header("X-User-Id", account_id != null ? account_id : "")
-                            .header("X-User-Email", email != null ? email : "")
-                            .header("X-User-Role", role != null ? role : "")
-                            .header("X-Internal-API-Key", internalApiKey)  // Thêm internal API key
-                            .build();
-                    return chain.filter(exchange.mutate().request(req).build());
-                } catch (ExpiredJwtException e){
-                    //response as jwt expired
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
-                } catch (JwtException e){
-                    System.out.println("Invalid token: " + e.getMessage());
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
-                }
-            } else {
+            if (endpointRegisterService.isPublic(path)){
                 ServerHttpRequest req = exchange.getRequest()
                         .mutate()
                         .header("X-Internal-API-Key", internalApiKey)  // ← Thêm key cho public endpoints
                         .build();
                 return chain.filter(exchange.mutate().request(req).build());
             }
+
+            List<String> authHeader = exchange.getRequest()
+                    .getHeaders()
+                    .get(HttpHeaders.AUTHORIZATION);
+
+            if (authHeader == null || authHeader.isEmpty()) {
+                return errorHandler.writeError(exchange,
+                        new RuntimeException("Missing Authorization header"),
+                        HttpStatus.UNAUTHORIZED);
+            }
+
+            // validate authorization (`Bearer ...` ?) ()
+            if (!authHeader.getFirst().startsWith("Bearer ")) {
+                return errorHandler.writeError(exchange,
+                        new RuntimeException("Missing Authorization header"),
+                        HttpStatus.UNAUTHORIZED);
+            }
+
+            // Extract and verify JWT token
+            Claims claim;
+            try {
+                claim = jwtUtil.extractToken(authHeader.getFirst().substring(7));
+            } catch (Exception e) {
+                return errorHandler.writeError(exchange, e, HttpStatus.UNAUTHORIZED);
+            }
+
+            // check expiration
+            val expiration = claim.getExpiration();
+            if (expiration.before(new Date())) {
+                return errorHandler.writeError(exchange,
+                        new RuntimeException("Access token has expired"),
+                        HttpStatus.UNAUTHORIZED);
+            }
+
+            // take account in4 from token
+            String account_id = claim.getSubject();
+            String email = jwtUtil.extractClaim(
+                    claim, claims -> claims.get("email", String.class));
+            String role = jwtUtil.extractClaim(
+                    claim, claims -> claims.get("role", String.class));
+
+            // Create new request with header contain account in4 and internal API key
+            ServerHttpRequest req = exchange.getRequest()
+                    .mutate()
+                    .header("X-User-Id", account_id != null ? account_id : "")
+                    .header("X-User-Email", email != null ? email : "")
+                    .header("X-User-Role", role != null ? role : "")
+                    .header("X-Internal-API-Key", internalApiKey)  // Thêm internal API key
+                    .build();
+            return chain.filter(exchange.mutate().request(req).build());
         };
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
     }
 
     public static class Config {

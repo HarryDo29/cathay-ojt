@@ -8,7 +8,7 @@ import java.util.Set;
 @Service
 public class EndpointRegisterService {
     private final IEndpointServiceRepository endpointRepo;
-    private volatile Set<String> publicEndpoints = Set.of();
+    private volatile Set<EndpointsEntity> publicEndpoints = Set.of();
 
     public EndpointRegisterService(IEndpointServiceRepository endpointRepo) {
         this.endpointRepo = endpointRepo;
@@ -16,13 +16,20 @@ public class EndpointRegisterService {
 
     public Mono<Void> loadEndpoints() {
         return endpointRepo.getAllEndpoints()
-                .map(EndpointsEntity::getPath)
                 .collectList()
                 .doOnNext(endpoints -> publicEndpoints = Set.copyOf(endpoints))
                 .then();
     }
 
     public boolean isPublic(String path) {
-        return publicEndpoints.contains(path);
+        return publicEndpoints.stream().findFirst().get().isPublic();
+    }
+
+    public EndpointsEntity isEnabled(String path) {
+        EndpointsEntity endpoint = publicEndpoints.stream()
+                .filter(ep -> ep.getPath().equals(path))
+                .findFirst()
+                .orElse(null);
+        return endpoint;
     }
 }
