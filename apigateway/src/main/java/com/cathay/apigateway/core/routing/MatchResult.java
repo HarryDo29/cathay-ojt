@@ -1,7 +1,6 @@
 package com.cathay.apigateway.core.routing;
 
 import com.cathay.apigateway.entity.EndpointsEntity;
-import lombok.Data;
 import lombok.Getter;
 
 import java.util.Collections;

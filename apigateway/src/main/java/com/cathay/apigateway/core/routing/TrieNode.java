@@ -3,7 +3,6 @@ package com.cathay.apigateway.core.routing;
 import com.cathay.apigateway.entity.EndpointsEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

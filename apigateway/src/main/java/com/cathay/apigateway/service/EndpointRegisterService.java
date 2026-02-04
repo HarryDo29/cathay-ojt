@@ -4,10 +4,8 @@ import com.cathay.apigateway.core.routing.PathTrie;
 import com.cathay.apigateway.entity.EndpointsEntity;
 import com.cathay.apigateway.interfaces.IEndpointServiceRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import java.util.Set;
 
 @Service
 public class EndpointRegisterService {
