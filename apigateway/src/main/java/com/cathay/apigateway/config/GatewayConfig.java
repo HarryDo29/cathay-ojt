@@ -13,7 +13,8 @@ import reactor.core.publisher.Flux;
 
 import java.util.Collection;
 import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Configuration
 public class GatewayConfig {
     public final AuthenticationGatewayFilterFactory authenticationFilter;
@@ -32,11 +33,11 @@ public class GatewayConfig {
        // ========================================
        return() -> {
            Collection<ServiceEntity> services = routeService.getServiceCacheMap();
-           System.out.println("🔍 RouteDefinitionLocator called. Services in cache: " + services.size());
+           log.info("🔍 RouteDefinitionLocator called. Services in cache: " + services.size());
            
            return Flux.fromIterable(services)
                .doOnNext(service ->
-                       System.out.println("🛣️  Creating route for: " + service.getName()
+                       log.info("🛣️  Creating route for: " + service.getName()
                                + " | Path: " + service.getPath() + " | URL: " + service.getUrl()))
                .map(serviceEntity -> {
                    // Create RouteDefinition for each serviceEntity
@@ -54,7 +55,9 @@ public class GatewayConfig {
                    stripPrefixFilter.addArg("parts", "3");
                    FilterDefinition authFilter = new FilterDefinition();
                    authFilter.setName("Authentication"); // Custom authentication filter
-                   routeDefinition.setFilters(List.of(authFilter, stripPrefixFilter));
+                   FilterDefinition authorFilter = new FilterDefinition();
+                   authFilter.setName("Authorization"); // Custom authorization filter
+                   routeDefinition.setFilters(List.of(authFilter, authorFilter, stripPrefixFilter));
                    return routeDefinition;
                });
        };

@@ -23,7 +23,7 @@ import java.util.List;
 @Slf4j
 @Component
 public class AuthenticationGatewayFilterFactory extends
-        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config>
+        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.AuthenConfig>
         implements Ordered {
 
     private final EndpointRegisterService endpointRegisterService;
@@ -32,7 +32,7 @@ public class AuthenticationGatewayFilterFactory extends
 
     public AuthenticationGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
                                               JwtUtil jwtUtil, ErrorHandler errorHandler) {
-        super(Config.class);
+        super(AuthenConfig.class);
         this.endpointRegisterService = endpointRegisterService;
         this.jwtUtil = jwtUtil;
         this.errorHandler = errorHandler;
@@ -42,13 +42,13 @@ public class AuthenticationGatewayFilterFactory extends
     private String internalApiKey;
 
     @Override
-    public @NonNull GatewayFilter apply(Config config) {
+    public @NonNull GatewayFilter apply(AuthenConfig config) {
         return (exchange, chain) -> {
             val path = exchange.getRequest().getURI().getPath();
             val method = exchange.getRequest().getMethod();
             log.info("\uD83D\uDD10 Authenticating request for path: {}", path);
             EndpointsEntity endpoint = endpointRegisterService.getEndpoint(path, method.toString()).getEntity();
-            if (endpoint != null) {
+            if (endpoint.isPublic()) {
                 ServerHttpRequest req = exchange.getRequest()
                         .mutate()
                         .header("X-Internal-API-Key", internalApiKey)  // ← Thêm key cho public endpoints
@@ -113,6 +113,6 @@ public class AuthenticationGatewayFilterFactory extends
         return 0;
     }
 
-    public static class Config {
+    public static class AuthenConfig {
     }
 }

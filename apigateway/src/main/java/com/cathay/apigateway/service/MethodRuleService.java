@@ -4,11 +4,13 @@ import com.cathay.apigateway.entity.MethodRuleEntity;
 import com.cathay.apigateway.interfaces.IMethodRuleRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
 
+@Slf4j
 @Service
 public class MethodRuleService {
     @Getter
@@ -22,9 +24,9 @@ public class MethodRuleService {
 
     @PostConstruct
     public void init() {
-        System.out.println("🔧 MethodRuleService @PostConstruct: Loading method rules...");
+        log.info("🔧 MethodRuleService @PostConstruct: Loading method rules...");
         loadMethodRules().block(); // Load synchronously during bean initialization
-        System.out.println("✅ MethodRuleService initialized with " + methodRuleSet.size() + " method rules");
+        log.info("✅ MethodRuleService initialized with " + methodRuleSet.size() + " method rules");
     }
 
     public Mono<Void> loadMethodRules() {

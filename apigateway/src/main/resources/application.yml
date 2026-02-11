@@ -49,6 +49,7 @@ app:
   # ============================================
   gateway:
     endpoints:
+        # ========== IDENTIFY SERVICE: Auth ==========
         # Login - Public endpoint
         - id: 6851f442-4b73-46f8-9487-845f2791f6a6
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
@@ -65,20 +66,22 @@ app:
           isPublic: true
           enabled: true
 
-        # Logout - Protected endpoint
+        # Logout - Protected (USER+)
         - id: 7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: POST
           path: /api/v1/identify-service/auth/logout
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Refresh Token - Public endpoint
+        # Refresh Token - Protected (USER+)
         - id: 8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: POST
           path: /api/v1/identify-service/auth/refresh
           isPublic: false
+          min_role_level: 1
           enabled: true
 
         # Forgot Password - Public endpoint
@@ -89,23 +92,25 @@ app:
           isPublic: true
           enabled: true
 
-        # Change Password - Protected endpoint
+        # Change Password - Protected (USER+)
         - id: 2f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: PUT
           path: /api/v1/identify-service/auth/change-password
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Send Verification Email - Protected endpoint
+        # Send Verification Email - Protected (USER+)
         - id: 3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: POST
           path: /api/v1/identify-service/auth/send-verification
           isPublic: false
+          min_role_level: 1
           enabled: false
 
-        # Verify Email - Public endpoint // gắn relation vs param: token
+        # Verify Email - Public endpoint
         - id: 4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: GET
@@ -113,108 +118,123 @@ app:
           isPublic: true
           enabled: false
 
-        # Get Current User Account - Protected endpoint
+        # ========== IDENTIFY SERVICE: Users ==========
+        # Get Current User Account - Protected (USER+)
         - id: 608a9815-42c7-4c33-9b4a-bf4c52aeaa15
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: GET
           path: /api/v1/identify-service/users/me
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Admin Delete Account - Protected endpoint // gắn relation vs param userId
+        # Admin Delete Account - Protected (ADMIN only)
         - id: 6d7e8f9a-0b1c-2d3e-4f5a-6b7c8d9e0f1a
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: DELETE
           path: /api/v1/identify-service/users/{userId}
           isPublic: false
+          min_role_level: 4
           enabled: false
 
-        # Admin Get Account by ID - Protected endpoint // gắn relation vs param userId
+        # Admin Get Account by ID - Protected (MANAGER+)
         - id: 7e8f9a0b-1c2d-3e4f-5a6b-7c8d9e0f1a2b
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: GET
           path: /api/v1/identify-service/users/{userId}
           isPublic: false
+          min_role_level: 3
           enabled: true
 
-        # Admin List All Users - Protected endpoint
+        # Admin List All Users - Protected (MANAGER+)
         - id: 4f5a6b7c-8d9e-0f1a-2b3c-4d5e6f7a8b9c
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: GET
           path: /api/v1/identify-service/users
           isPublic: false
+          min_role_level: 3
           enabled: true
 
-        # Admin Create User - Protected endpoint
+        # Admin Create User - Protected (ADMIN only)
         - id: 5a6b7c8d-9e0f-1a2b-3c4d-5e6f7a8b9c0d
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           method: POST
           path: /api/v1/identify-service/users
           isPublic: false
+          min_role_level: 4
           enabled: true
 
-        # Create Payment Method - Protected endpoint
+        # ========== PAYMENT SERVICE ==========
+        # Create Payment Method - Protected (USER+)
         - id: 1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: POST
           path: /api/v1/payment-service/payments/methods
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Create Payment - Protected endpoint
+        # Create Payment - Protected (USER+)
         - id: 2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: POST
           path: /api/v1/payment-service/payments
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Cancel Payment - Protected endpoint
+        # Cancel Payment - Protected (MANAGER+)
         - id: 3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: POST
           path: /api/v1/payment-service/payments/{paymentId}/cancel
           isPublic: false
+          min_role_level: 3
           enabled: true
 
-        # Get All Payments - Protected endpoint
+        # Get All Payments - Protected (USER+)
         - id: 4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: GET
           path: /api/v1/payment-service/payments
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Get Payment Methods - Protected endpoint
+        # Get Payment Methods - Protected (USER+)
         - id: 5f6a7b8c-9d0e-1f2a-3b4c-5d6e7f8a9b0c
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: GET
           path: /api/v1/payment-service/payments/methods
           isPublic: false
+          min_role_level: 1
           enabled: true
 
-        # Refund Payment - Protected endpoint
+        # Refund Payment - Protected (ADMIN only)
         - id: 6a7b8c9d-0e1f-2a3b-4c5d-6e7f8a9b0c1d
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: POST
           path: /api/v1/payment-service/payments/{paymentId}/refund
           isPublic: false
+          min_role_level: 4
           enabled: true
 
-        # Get All Transactions - Protected endpoint
+        # Get All Transactions - Protected (MANAGER+)
         - id: 7b8c9d0e-1f2a-3b4c-5d6e-7f8a9b0c1d2e
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: GET
           path: /api/v1/payment-service/transactions
           isPublic: false
+          min_role_level: 3
           enabled: true
 
-        # Get Transaction by ID - Protected endpoint
+        # Get Transaction by ID - Protected (MANAGER+)
         - id: 8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           method: GET
           path: /api/v1/payment-service/transactions/{transactionId}
           isPublic: false
+          min_role_level: 3
           enabled: true
 
         
@@ -226,118 +246,28 @@ app:
         - id: a1b2c3d4-1111-4000-8000-000000000001
           name: ADMIN
           description: Administrator with full access
-          enabled: true
-
-        - id: a1b2c3d4-1111-4000-8000-000000000002
-          name: USER
-          description: Regular user with limited access
+          level: 4
           enabled: true
 
         - id: a1b2c3d4-1111-4000-8000-000000000003
           name: MANAGER
           description: Manager with elevated permissions
+          level: 3
           enabled: true
 
         - id: a1b2c3d4-1111-4000-8000-000000000004
-          name: GUEST
+          name: STAFF
           description: Guest user with read-only access
+          level: 2
           enabled: true
 
-    # ============================================
-    # TABLE: permissions
-    # ============================================
-    permissions:
-        - id: b2c3d4e5-2222-4000-8000-000000000001
-          name: READ_ACCOUNT
-          description: Permission to read account information
-          resource: account
-          action: READ
+        - id: a1b2c3d4-1111-4000-8000-000000000002
+          name: USER
+          description: Regular user with limited access
+          level: 1
           enabled: true
 
-        - id: b2c3d4e5-2222-4000-8000-000000000002
-          name: WRITE_ACCOUNT
-          description: Permission to create/update account
-          resource: account
-          action: WRITE
-          enabled: true
-
-        - id: b2c3d4e5-2222-4000-8000-000000000003
-          name: DELETE_ACCOUNT
-          description: Permission to delete account
-          resource: account
-          action: DELETE
-          enabled: true
-
-        - id: b2c3d4e5-2222-4000-8000-000000000004
-          name: READ_PAYMENT
-          description: Permission to read payment information
-          resource: payment
-          action: READ
-          enabled: true
-
-        - id: b2c3d4e5-2222-4000-8000-000000000005
-          name: WRITE_PAYMENT
-          description: Permission to create/update payment
-          resource: payment
-          action: WRITE
-          enabled: true
-
-    # ============================================
-    # TABLE: role_permissions (FK: role_id -> roles.id, permission_id -> permissions.id)
-    # ============================================
-    role_permissions:
-        # ADMIN - all permissions
-        - id: c3d4e5f6-3333-4000-8000-000000000001
-          role_id: a1b2c3d4-1111-4000-8000-000000000001
-          permission_id: b2c3d4e5-2222-4000-8000-000000000001
-
-        - id: c3d4e5f6-3333-4000-8000-000000000002
-          role_id: a1b2c3d4-1111-4000-8000-000000000001
-          permission_id: b2c3d4e5-2222-4000-8000-000000000002
-
-        - id: c3d4e5f6-3333-4000-8000-000000000003
-          role_id: a1b2c3d4-1111-4000-8000-000000000001
-          permission_id: b2c3d4e5-2222-4000-8000-000000000003
-
-        - id: c3d4e5f6-3333-4000-8000-000000000004
-          role_id: a1b2c3d4-1111-4000-8000-000000000001
-          permission_id: b2c3d4e5-2222-4000-8000-000000000004
-
-        - id: c3d4e5f6-3333-4000-8000-000000000005
-          role_id: a1b2c3d4-1111-4000-8000-000000000001
-          permission_id: b2c3d4e5-2222-4000-8000-000000000005
-
-        # USER - read only
-        - id: c3d4e5f6-3333-4000-8000-000000000006
-          role_id: a1b2c3d4-1111-4000-8000-000000000002
-          permission_id: b2c3d4e5-2222-4000-8000-000000000001
-
-        - id: c3d4e5f6-3333-4000-8000-000000000007
-          role_id: a1b2c3d4-1111-4000-8000-000000000002
-          permission_id: b2c3d4e5-2222-4000-8000-000000000004
-
-        # MANAGER - read/write, no delete
-        - id: c3d4e5f6-3333-4000-8000-000000000008
-          role_id: a1b2c3d4-1111-4000-8000-000000000003
-          permission_id: b2c3d4e5-2222-4000-8000-000000000001
-
-        - id: c3d4e5f6-3333-4000-8000-000000000009
-          role_id: a1b2c3d4-1111-4000-8000-000000000003
-          permission_id: b2c3d4e5-2222-4000-8000-000000000002
-
-        - id: c3d4e5f6-3333-4000-8000-000000000010
-          role_id: a1b2c3d4-1111-4000-8000-000000000003
-          permission_id: b2c3d4e5-2222-4000-8000-000000000004
-
-        - id: c3d4e5f6-3333-4000-8000-000000000011
-          role_id: a1b2c3d4-1111-4000-8000-000000000003
-          permission_id: b2c3d4e5-2222-4000-8000-000000000005
-
-        # GUEST - read account only
-        - id: c3d4e5f6-3333-4000-8000-000000000012
-          role_id: a1b2c3d4-1111-4000-8000-000000000004
-          permission_id: b2c3d4e5-2222-4000-8000-000000000001
-
+    # endpoint_roles: REMOVED - replaced by min_role_level on each endpoint
   # ============================================
   # VALIDATION FILTER - Global validation rules
   # ============================================
@@ -602,7 +532,7 @@ app:
         required: true
 
       # PUT /profile (Protected)
-      - id: ehr-034
+      - id: ecc6a191-2ba6-4855-b79f-84076ad0a4e4
         endpoint_id: 9a0b1c2d-3e4f-5a6b-7c8d-9e0f1a2b3c4d
         header_rule_id: a1b2c3d4-aaaa-4000-8000-000000000010  # Authorization
         required: true
@@ -656,7 +586,7 @@ app:
         required: true
 
       # GET /users/{id}/roles (Protected)
-      - id: ehr-058
+      - id: 8ea44e26-b7c4-4aaf-ac17-39b31168164f
         endpoint_id: 9e0f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b
         header_rule_id: a1b2c3d4-aaaa-4000-8000-000000000010  # Authorization
         required: true
@@ -674,49 +604,6 @@ app:
         required: true
 
     # ============================================
-    # TABLE: blocked_domains
-    # Danh sách domain bị chặn (blacklist)
-    # Check từ Host header hoặc Origin header
-    # ============================================
-    blocked_domains:
-        - id: b2c3d4e5-bbbb-4000-8000-000000000001
-          domain: malicious-site.com
-          reason: Known malicious domain
-          blocked_at: 2026-01-15T00:00:00Z
-          enabled: true
-          created_at: 2026-01-01T00:00:00Z
-          updated_at: 2026-01-01T00:00:00Z
-
-        - id: b2c3d4e5-bbbb-4000-8000-000000000002
-          domain: spam-domain.net
-          reason: Spam source
-          blocked_at: 2026-01-20T00:00:00Z
-          enabled: true
-          created_at: 2026-01-01T00:00:00Z
-          updated_at: 2026-01-01T00:00:00Z
-
-    # ============================================
-    # TABLE: allowed_content_types
-    # Danh sách Content-Type được phép
-    # ============================================
-    allowed_content_types:
-        - id: c3d4e5f6-cccc-4000-8000-000000000001
-          content_type: application/json
-          enabled: true
-          created_at: 2026-01-01T00:00:00Z
-          updated_at: 2026-01-01T00:00:00Z
-
-        - id: c3d4e5f6-cccc-4000-8000-000000000002
-          content_type: application/x-www-form-urlencoded
-          enabled: true
-          created_at: 2026-01-01T00:00:00Z
-          updated_at: 2026-01-01T00:00:00Z
-
-        - id: c3d4e5f6-cccc-4000-8000-000000000003
-          content_type: multipart/form-data
-          enabled: true
-          created_at: 2026-01-01T00:00:00Z
-          updated_at: 2026-01-01T00:00:00Z
 
 access_token:
   secret: ${access_token.secret}
