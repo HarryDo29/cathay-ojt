@@ -82,7 +82,9 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // PHASE 1: GLOBAL VALIDATION
         // ============================================
         // 1.1 Endpoint existed or not (or enabled or not)
+        log.info("Path: {}, Method: {}", path, method);
         MatchResult result = endpointRegisterService.getEndpoint(path, method);
+        log.info("Validating endpoint {} result: {}", path, result.toString());
         if (result.getStatus() != MatchResult.Status.FOUND) {
             log.warn("Endpoint not found: {} {}", method, path);
             return errorHandler.writeError(exchange,
@@ -92,6 +94,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         }
         
         EndpointsEntity endpoint = result.getEntity();
+        log.info("Endpoint: {}", endpoint);
         if (!endpoint.isEnabled()) {
             log.warn("Endpoint disabled: {} {}", method, path);
             return errorHandler.writeError(exchange,
@@ -155,7 +158,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // PHASE 3: DETAILED HEADER VALIDATION
         // ============================================
         // Build set of allowed header IDs for this endpoint for O(1) lookup
-        Map<String, HeaderRulesEntity> allowedHeaderRules = Map.of();
+        Map<String, HeaderRulesEntity> allowedHeaderRules = new HashMap<>(Map.of());
         for (EndpointHeaderRuleEntity rule : endpointHeaderRules) {
             HeaderRulesEntity headerRule = headerRuleCache.get(rule.getHeader_rule_id().toString());
             if (headerRule != null) {
@@ -267,7 +270,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // 3. Validate pattern (regex) if configured
         String pattern = headerRule.getPattern();
 
-        if (headerValue.matches(pattern)) {
+        if (!headerValue.matches(pattern)) {
             log.warn("Header '{}' failed pattern validation. Value: {}",
                     headerName,
                     headerValue.length() > 50 ? headerValue.substring(0, 50) + "..." : headerValue);

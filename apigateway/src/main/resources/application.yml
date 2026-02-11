@@ -48,7 +48,7 @@ app:
   # TABLE: endpoints (FK: service_id -> services.id)
   # ============================================
   gateway:
-    endpoints:
+      endpoints:
         # ========== IDENTIFY SERVICE: Auth ==========
         # Login - Public endpoint
         - id: 6851f442-4b73-46f8-9487-845f2791f6a6
@@ -108,7 +108,7 @@ app:
           path: /api/v1/identify-service/auth/send-verification
           isPublic: false
           min_role_level: 1
-          enabled: false
+          enabled: true
 
         # Verify Email - Public endpoint
         - id: 4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e
@@ -135,7 +135,7 @@ app:
           path: /api/v1/identify-service/users/{userId}
           isPublic: false
           min_role_level: 4
-          enabled: false
+          enabled: true
 
         # Admin Get Account by ID - Protected (MANAGER+)
         - id: 7e8f9a0b-1c2d-3e4f-5a6b-7c8d9e0f1a2b
@@ -358,7 +358,7 @@ app:
       - id: a1b2c3d4-aaaa-4000-8000-000000000010
         name: Authorization
         max_length: 4096
-        pattern: "^(Bearer [A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+|Basic [A-Za-z0-9+/=]+)$"
+        pattern: '^Bearer\s+[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
         description: Bearer JWT token or Basic auth credentials
 
       - id: a1b2c3d4-aaaa-4000-8000-000000000011

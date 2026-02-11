@@ -3,7 +3,6 @@ package com.cathay.apigateway.core.routing;
 import com.cathay.apigateway.entity.EndpointsEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,14 +64,13 @@ public class PathTrie {
                 log.debug("Segment not found: {}", segment);
                 return MatchResult.notFound(); // Không tìm thấy đường dẫn
             }
-
-            EndpointsEntity matchedEndpoint = current.operations.get(method.toUpperCase());
-            if (matchedEndpoint != null) {
-                return MatchResult.found(matchedEndpoint, extractedParams);
-            } else {
-                return MatchResult.methodNotAllowed(method);
-            }
         }
-        return MatchResult.notFound();
+        EndpointsEntity matchedEndpoint = current.operations.get(method.toUpperCase());
+        if (matchedEndpoint != null) {
+            log.info("Matched endpoint: {}, method: {}", matchedEndpoint, method);
+            return MatchResult.found(matchedEndpoint, extractedParams);
+        } else {
+            return MatchResult.methodNotAllowed(method);
+        }
     }
 }
