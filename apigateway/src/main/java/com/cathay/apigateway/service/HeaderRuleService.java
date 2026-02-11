@@ -4,11 +4,13 @@ import com.cathay.apigateway.entity.HeaderRulesEntity;
 import com.cathay.apigateway.interfaces.IHeaderRuleRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class HeaderRuleService {
     @Getter
@@ -20,11 +22,11 @@ public class HeaderRuleService {
         this.allowedHeaderRepo = allowedHeaderRepo;
     }
 
+    // Load allowed headers at startup after loading endpoints
     @PostConstruct
     public void init() {
-        System.out.println("🔧 HeaderRuleService @PostConstruct: Loading allowed headers...");
+        log.info("🔧 HeaderRuleService @PostConstruct: Loading allowed headers...");
         loadAllowedHeaders().block(); // Load synchronously during bean initialization
-        System.out.println("✅ HeaderRuleService initialized with " + headers.size() + " allowed headers");
     }
 
     public Mono<Void> loadAllowedHeaders(){

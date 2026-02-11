@@ -4,9 +4,11 @@ import com.cathay.apigateway.core.routing.PathTrie;
 import com.cathay.apigateway.entity.EndpointsEntity;
 import com.cathay.apigateway.interfaces.IEndpointServiceRepository;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
 public class EndpointRegisterService {
     private final IEndpointServiceRepository endpointRepo;
@@ -19,7 +21,7 @@ public class EndpointRegisterService {
 
     @PostConstruct
     public void init() {
-        System.out.println("🔧 EndpointRegisterService @PostConstruct: Loading endpoints...");
+        log.info("🔧 EndpointRegisterService @PostConstruct: Loading endpoints...");
         loadEndpoints().block(); // Load synchronously during bean initialization
     }
 

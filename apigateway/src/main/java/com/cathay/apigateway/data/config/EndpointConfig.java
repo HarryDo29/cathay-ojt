@@ -20,6 +20,7 @@ public class EndpointConfig {
         private String method;
         private String serviceId;
         private String isPublic;
+        private int min_role_level;
         private String enabled;
     }
 

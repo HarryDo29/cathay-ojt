@@ -26,6 +26,7 @@ public class YmlEndpointServiceRepository implements IEndpointServiceRepository 
                     entity.setServiceId(endpoint.getServiceId());
                     entity.setEnabled(Boolean.parseBoolean(endpoint.getEnabled()));
                     entity.setPublic(Boolean.parseBoolean(endpoint.getIsPublic()));
+                    entity.setMinRoleLevel(endpoint.getMin_role_level());
                     return entity;
                 });
     }

@@ -23,6 +23,9 @@ public class EndpointsEntity {
 //    @Column("is_public")
     private boolean isPublic;
 
+//    @Column("min_role_level")
+    private int minRoleLevel;
+
 //    @CreatedDate
 //    private LocalDateTime created_at;
 //

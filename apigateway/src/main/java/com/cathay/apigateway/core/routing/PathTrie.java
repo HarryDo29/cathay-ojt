@@ -33,7 +33,7 @@ public class PathTrie {
             if (segment.startsWith("{") && segment.endsWith("}")){
                 if (current.paramNode == null) {
                     current.paramNode = new TrieNode();
-                    current.paramName = segment.substring(1, segment.length() - 1); // Take param name without {}
+                    current.paramName = segment.substring(1, segment.length() - 1); // Take param name without '{','}'
                     // node cha sẽ lưu tên tham số vào paramName
                 }
                 current = current.paramNode;
@@ -45,7 +45,7 @@ public class PathTrie {
             }
             // node cuối cùng là node rỗng không có children, paramNode, paramName
             // chỉ có operations để lưu các phương thức HTTP tương ứng với endpoint
-            current.operations.put(endpoint.getMethod().toUpperCase(), endpoint);
+            current.operations.computeIfAbsent(endpoint.getMethod().toUpperCase(), k -> endpoint);
         }
     }
 
