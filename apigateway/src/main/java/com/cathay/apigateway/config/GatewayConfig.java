@@ -28,9 +28,7 @@ public class GatewayConfig {
 
     @Bean
     public RouteDefinitionLocator customLocator(){
-       // ========================================
        // DYNAMIC CODE - Load from config
-       // ========================================
        return() -> {
            Collection<ServiceEntity> services = routeService.getServiceCacheMap();
            log.info("🔍 RouteDefinitionLocator called. Services in cache: " + services.size());
@@ -56,7 +54,7 @@ public class GatewayConfig {
                    FilterDefinition authFilter = new FilterDefinition();
                    authFilter.setName("Authentication"); // Custom authentication filter
                    FilterDefinition authorFilter = new FilterDefinition();
-                   authFilter.setName("Authorization"); // Custom authorization filter
+                   authorFilter.setName("Authorization"); // Custom authorization filter
                    routeDefinition.setFilters(List.of(authFilter, authorFilter, stripPrefixFilter));
                    return routeDefinition;
                });
