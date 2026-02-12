@@ -27,6 +27,54 @@ app:
     max_body_size: 10MB      # Spring tự hiểu MB, KB
     max_header_size: 8KB
     max_query_params: 50
+
+  cors:
+    allowed_origins:
+      - id: 0994f289-2063-48df-b747-3cb36b080d3e
+        origin: http://localhost:5173
+        enabled: true
+
+      - id: dee179e6-da2d-468e-a206-8ed0d7f47c54
+        origin: http://localhost:3000
+        enabled: true
+
+    allowed_headers:
+      - id: a1b2c3d4-0001-4000-8000-000000000001
+        header: Content-Type
+        enabled: true
+
+      - id: a1b2c3d4-0002-4000-8000-000000000002
+        header: Authorization
+        enabled: true
+      
+      - id: a1b2c3d4-0003-4000-8000-000000000003
+        header: Accept
+        enabled: true
+      
+      - id: a1b2c3d4-0004-4000-8000-000000000004
+        header: Origin
+        enabled: true
+      
+      - id: a1b2c3d4-0005-4000-8000-000000000005
+        header: Access-Control-Request-Method
+        enabled: true
+      
+      - id: a1b2c3d4-0006-4000-8000-000000000006
+        header: Access-Control-Request-Headers
+        enabled: true
+      
+      - id: a1b2c3d4-0007-4000-8000-000000000007
+        header: X-XSRF-Token
+        enabled: true
+      
+      - id: a1b2c3d4-0008-4000-8000-000000000008
+        header: X-Request-Id
+        enabled: true
+      
+      - id: a1b2c3d4-0009-4000-8000-000000000009
+        header: X-Api-Key
+        enabled: true
+
   # ============================================
   # TABLE: services
   # ============================================
