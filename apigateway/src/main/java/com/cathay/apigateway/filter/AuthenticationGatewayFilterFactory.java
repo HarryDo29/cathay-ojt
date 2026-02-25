@@ -23,8 +23,7 @@ import java.util.List;
 @Slf4j
 @Component
 public class AuthenticationGatewayFilterFactory extends
-        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.AuthenConfig>
-        implements Ordered {
+        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.AuthenConfig> {
 
     private final EndpointRegisterService endpointRegisterService;
     private final JwtUtil jwtUtil;
@@ -106,11 +105,6 @@ public class AuthenticationGatewayFilterFactory extends
                     .build();
             return chain.filter(exchange.mutate().request(req).build());
         };
-    }
-
-    @Override
-    public int getOrder() {
-        return 0;
     }
 
     public static class AuthenConfig {

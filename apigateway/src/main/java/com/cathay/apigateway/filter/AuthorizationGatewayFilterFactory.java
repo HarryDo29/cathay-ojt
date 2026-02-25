@@ -17,8 +17,7 @@ import java.nio.file.AccessDeniedException;
 @Slf4j
 @Component
 public class AuthorizationGatewayFilterFactory extends
-        AbstractGatewayFilterFactory<AuthorizationGatewayFilterFactory.AuthorConfig>
-        implements Ordered {
+        AbstractGatewayFilterFactory<AuthorizationGatewayFilterFactory.AuthorConfig> {
 
     private final EndpointRegisterService endpointRegisterService;
     private final RoleService roleService;
@@ -70,10 +69,5 @@ public class AuthorizationGatewayFilterFactory extends
     }
 
     public static class AuthorConfig {
-    }
-
-    @Override
-    public int getOrder() {
-        return 1;
     }
 }
