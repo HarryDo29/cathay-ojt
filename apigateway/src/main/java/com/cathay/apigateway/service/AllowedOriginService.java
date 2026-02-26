@@ -1,6 +1,5 @@
 package com.cathay.apigateway.service;
 
-import com.cathay.apigateway.data.config.CorsConfig;
 import com.cathay.apigateway.entity.AllowedOriginEntity;
 import com.cathay.apigateway.interfaces.IAllowedOriginRepository;
 import jakarta.annotation.PostConstruct;

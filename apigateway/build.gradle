@@ -37,7 +37,7 @@ dependencies {
 //	runtimeOnly 'org.postgresql:postgresql'
 //	runtimeOnly 'org.postgresql:r2dbc-postgresql'
 	//
-//	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 	//
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

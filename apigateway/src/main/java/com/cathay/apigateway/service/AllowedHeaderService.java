@@ -1,7 +1,6 @@
 package com.cathay.apigateway.service;
 
 import com.cathay.apigateway.entity.AllowedHeaderEntity;
-import com.cathay.apigateway.entity.AllowedOriginEntity;
 import com.cathay.apigateway.interfaces.IAllowedHeaderRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
