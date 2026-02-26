@@ -1,9 +1,6 @@
 # Secret files - DO NOT COMMIT
 **/secret.properties
 apigateway/secret.properties
-identify/secret.properties
-chatbot/secret.properties
-chatbot/
 .DS_Store
 
 # Gradle
