@@ -11,6 +11,8 @@ import java.util.UUID;
 @ConfigurationProperties(prefix = "app.routes")
 public class ServiceConfig {
     private List<RouteService> services;
+    private List<RouteFilters> filters;
+    private List<ServiceFilters> serviceFilters;
 
     @Data
     public static class RouteService {
@@ -18,6 +20,24 @@ public class ServiceConfig {
         private String name;
         private String path;
         private String url;
+        private String strip_prefix;
         private String enabled;
+    }
+
+    @Data
+    public static class RouteFilters{
+        private UUID id;
+        private String name;
+        private String description;
+        private String status;
+    }
+
+    @Data
+    public static class ServiceFilters{
+        private UUID id;
+        private UUID serviceId;
+        private UUID filterId;
+        private String enabled;
+        private String sort_order;
     }
 }

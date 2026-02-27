@@ -25,6 +25,7 @@ public class YmlRouteServiceRepository implements IRouteServiceRepository {
                         entity.setName(service.getName());
                         entity.setPath(service.getPath());
                         entity.setUrl(service.getUrl());
+                        entity.setStrip_prefix(Integer.parseInt(service.getStrip_prefix()));
                         entity.setEnabled(true);
                         return entity;
                     }

@@ -1,8 +1,10 @@
 package com.cathay.apigateway.config;
 
+import com.cathay.apigateway.entity.FilterEntity;
 import com.cathay.apigateway.entity.ServiceEntity;
 import com.cathay.apigateway.filter.AuthenticationGatewayFilterFactory;
 import com.cathay.apigateway.service.RouteRegistryService;
+import com.cathay.apigateway.service.ServiceFilterService;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -11,19 +13,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 public class GatewayConfig {
-    public final AuthenticationGatewayFilterFactory authenticationFilter;
-    public final RouteRegistryService routeService;
+    private final AuthenticationGatewayFilterFactory authenticationFilter;
+    private final RouteRegistryService routeService;
+    private final ServiceFilterService serviceFilterService;
 
     public GatewayConfig(AuthenticationGatewayFilterFactory authenticationFilter,
-                         RouteRegistryService routeService) {
+                         RouteRegistryService routeService, ServiceFilterService serviceFilterService) {
         this.authenticationFilter = authenticationFilter;
         this.routeService = routeService;
+        this.serviceFilterService = serviceFilterService;
     }
 
     @Bean
@@ -48,14 +53,23 @@ public class GatewayConfig {
                    predicate.addArg("pattern", serviceEntity.getPath());
                    routeDefinition.setPredicates(List.of(predicate));
                    // Filters for authentication and stripping prefix
-                   FilterDefinition stripPrefixFilter = new FilterDefinition();
-                   stripPrefixFilter.setName("StripPrefix"); // Remove first 3 segments: /api/v1/{service}/
-                   stripPrefixFilter.addArg("parts", "3");
-                   FilterDefinition authFilter = new FilterDefinition();
-                   authFilter.setName("Authentication"); // Custom authentication filter
-                   FilterDefinition authorFilter = new FilterDefinition();
-                   authorFilter.setName("Authorization"); // Custom authorization filter
-                   routeDefinition.setFilters(List.of(authFilter, authorFilter, stripPrefixFilter));
+                   List<FilterDefinition> filters = new ArrayList<>(); // filter list
+                   // list of filters for this service
+                   List<FilterEntity> serviceFilters = serviceFilterService.getFiltersForService(serviceEntity.getId());
+                   // Add filters based on service configuration
+                   for (FilterEntity filter : serviceFilters) {
+                       FilterDefinition filterDef = new FilterDefinition();
+                       filterDef.setName(filter.getName());
+                       filters.add(filterDef);
+                   }
+                   // Add StripPrefix filter if configured
+                   if (serviceEntity.getStrip_prefix() > 0) {
+                       FilterDefinition stripPrefixFilter = new FilterDefinition();
+                       stripPrefixFilter.setName("StripPrefix"); // Remove first 3 segments: /api/v1/{service}/
+                       stripPrefixFilter.addArg("parts", serviceEntity.getStrip_prefix().toString());
+                       filters.add(stripPrefixFilter);
+                   }
+                   routeDefinition.setFilters(filters);
                    return routeDefinition;
                });
        };

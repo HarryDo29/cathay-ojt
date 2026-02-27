@@ -16,6 +16,8 @@ public class ServiceEntity {
 //    @Column("base_url")
     private String url; // save as http://host:port
 
+    private Integer strip_prefix;
+
 //    @Column("is_enabled")
     private boolean enabled;
 
