@@ -1,6 +1,7 @@
 package com.cathay.apigateway.core.routing;
 
 import com.cathay.apigateway.entity.EndpointsEntity;
+import com.cathay.apigateway.enums.Status;
 import lombok.Getter;
 
 import java.util.Collections;
@@ -8,12 +9,6 @@ import java.util.Map;
 
 @Getter
 public class MatchResult {
-    public enum Status {
-        FOUND,              // Tìm thấy (200)
-        PATH_NOT_FOUND,     // Sai đường dẫn (404)
-        METHOD_NOT_ALLOWED  // Đúng đường dẫn, sai Method (405)
-    }
-
     private Status status;
     private EndpointsEntity entity;
     private Map<String, String> params;

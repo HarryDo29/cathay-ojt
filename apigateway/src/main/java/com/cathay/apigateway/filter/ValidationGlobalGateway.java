@@ -6,6 +6,7 @@ import com.cathay.apigateway.entity.EndpointHeaderRuleEntity;
 import com.cathay.apigateway.entity.EndpointsEntity;
 import com.cathay.apigateway.entity.HeaderRulesEntity;
 import com.cathay.apigateway.entity.MethodRuleEntity;
+import com.cathay.apigateway.enums.Status;
 import com.cathay.apigateway.service.EndpointHeaderRuleService;
 import com.cathay.apigateway.service.EndpointRegisterService;
 import com.cathay.apigateway.service.HeaderRuleService;
@@ -85,7 +86,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         log.info("Path: {}, Method: {}", path, method);
         MatchResult result = endpointRegisterService.getEndpoint(path, method);
         log.info("Validating endpoint {} result: {}", path, result.toString());
-        if (result.getStatus() != MatchResult.Status.FOUND) {
+        if (result.getStatus() != Status.FOUND) {
             log.warn("Endpoint not found: {} {}", method, path);
             return errorHandler.writeError(exchange,
                     new NotFoundException("Endpoint not found"),

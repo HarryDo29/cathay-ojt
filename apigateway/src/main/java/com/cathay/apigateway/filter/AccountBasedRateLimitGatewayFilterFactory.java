@@ -4,7 +4,6 @@ import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -21,7 +20,6 @@ import java.util.List;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
 
@@ -31,6 +29,17 @@ public class AccountBasedRateLimitGatewayFilterFactory
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final RateLimitService rateLimitService;
     private final ErrorHandler errorHandler;
+
+    public AccountBasedRateLimitGatewayFilterFactory(RedisScript<Long> accountRateLimitLuaScript,
+                                                      ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
+                                                      RateLimitService rateLimitService,
+                                                      ErrorHandler errorHandler) {
+        super(Config.class);
+        this.accountRateLimitLuaScript = accountRateLimitLuaScript;
+        this.reactiveRedisTemplate = reactiveRedisTemplate;
+        this.rateLimitService = rateLimitService;
+        this.errorHandler = errorHandler;
+    }
 
     @Override
     public GatewayFilter apply(AccountBasedRateLimitGatewayFilterFactory.Config config) {

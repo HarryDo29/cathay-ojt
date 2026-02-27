@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import java.nio.file.AccessDeniedException;
