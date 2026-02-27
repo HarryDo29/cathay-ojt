@@ -21,17 +21,18 @@ public class EndpointRegisterService {
 
     @PostConstruct
     public void init() {
-        log.info("🔧 EndpointRegisterService @PostConstruct: Loading endpoints...");
-        loadEndpoints().block(); // Load synchronously during bean initialization
+        log.info("[Gateway] ▶️ Registering API endpoints into path trie...");
+        loadEndpoints().block();
     }
 
     public Mono<Void> loadEndpoints() {
         return endpointRepo.getAllEndpoints()
                 .collectList()
                 .doOnNext(endpoints -> {
-                    for( EndpointsEntity ep : endpoints) {
+                    for (EndpointsEntity ep : endpoints) {
                         pathTrie.insertTrie(ep);
                     }
+                    log.info("[Gateway] ✅ Endpoint registry ready — {} endpoints registered", endpoints.size());
                 })
                 .then();
     }

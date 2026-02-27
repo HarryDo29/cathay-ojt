@@ -24,18 +24,15 @@ public class RateLimitService {
 
     @PostConstruct
     public void init() {
-        log.info("🔧 RateLimitService @PostConstruct: Loading rate limit rules...");
-        loadRateLimits().block(); // Load synchronously during bean initialization
-        log.info("✅ RateLimitService initialized with " + rateLimitList.size() + " rate limit rules");
+        log.info("[Gateway] ▶️ Loading rate limit configurations...");
+        loadRateLimits().block();
+        log.info("[Gateway] ✅ Rate limiter ready — {} rate limit rules configured", rateLimitList.size());
     }
 
     public Mono<Void> loadRateLimits() {
         return rateLimitRepository.getAllRateLimits()
                 .collectList()
-                .doOnNext(rateLimit -> {
-                    rateLimitList = List.copyOf(rateLimit);
-                    log.info("✅ Loaded " + rateLimitList.size() + " rate limit rules");
-                })
+                .doOnNext(rateLimit -> rateLimitList = List.copyOf(rateLimit))
                 .then();
     }
 

@@ -26,11 +26,11 @@ public class EndpointHeaderRuleService {
 
     @PostConstruct
     public void init() {
-        log.info("🔧 EndpointHeaderRuleService @PostConstruct: Loading endpoint header rules...");
-        loadEndpointHeaderRules().block(); // Load synchronously during bean initialization
+        log.info("[Gateway] ▶️ Loading endpoint-header rule mappings...");
+        loadEndpointHeaderRules().block();
+        log.info("[Gateway] ✅ Endpoint header rules ready — {} endpoint mappings loaded", endpointHeaderRule.size());
     }
 
-    // Load endpoint header rules at startup after loading endpoints and allowed headers
     public Mono<Void> loadEndpointHeaderRules() {
         return endpointHeaderRuleRepo.loadAllEndpointHeaderRules()
            .collectList()

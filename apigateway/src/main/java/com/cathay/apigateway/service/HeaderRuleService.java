@@ -22,11 +22,11 @@ public class HeaderRuleService {
         this.allowedHeaderRepo = allowedHeaderRepo;
     }
 
-    // Load allowed headers at startup after loading endpoints
     @PostConstruct
     public void init() {
-        log.info("🔧 HeaderRuleService @PostConstruct: Loading allowed headers...");
-        loadAllowedHeaders().block(); // Load synchronously during bean initialization
+        log.info("[Gateway] ▶️ Loading header validation rules...");
+        loadAllowedHeaders().block();
+        log.info("[Gateway] ✅ Header rules ready — {} rules cached", headers.size());
     }
 
     public Mono<Void> loadAllowedHeaders(){

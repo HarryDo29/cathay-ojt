@@ -23,20 +23,17 @@ public class RouteRegistryService {
     
     @PostConstruct
     public void init() {
-        log.info("🔧 RouteRegistryService @PostConstruct: Loading services...");
-        loadServices().block(); // Load synchronously during bean initialization
-        log.info("✅ RouteRegistryService initialized with " + serviceCache.size() + " services");
+        log.info("[Gateway] ▶️ Loading service route definitions...");
+        loadServices().block();
+        log.info("[Gateway] ✅ Route registry ready — {} service routes cached", serviceCache.size());
     }
 
     public Mono<Void> loadServices(){
         return serviceRepo.getAllServices()
                 .doOnNext(service ->
-                        log.info("📦 Loading service: " + service.getName() + " -> " + service.getPath()))
+                        log.debug("[Gateway]   Route registered: {} → {}", service.getName(), service.getPath()))
                 .collectMap(ServiceEntity::getId)
-                .doOnNext(map -> {
-                    serviceCache = Map.copyOf(map);
-                    log.info("✅ Total services loaded into cache: " + map.size());
-                })
+                .doOnNext(map -> serviceCache = Map.copyOf(map))
                 .then();
     }
 

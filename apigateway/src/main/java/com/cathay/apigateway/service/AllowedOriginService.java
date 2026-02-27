@@ -25,8 +25,9 @@ public class AllowedOriginService {
 
     @PostConstruct
     public void init() {
-        log.info("🔧 AllowedOriginService @PostConstruct: Loading allowed origins...");
-        loadAllowedOrigins().block(); // Load synchronously during bean initialization
+        log.info("[Gateway] ▶️ Loading CORS allowed origins...");
+        loadAllowedOrigins().block();
+        log.info("[Gateway] ✅ CORS origins ready — {} allowed origins active", allowedOriginList.size());
     }
 
     public Mono<Void> loadAllowedOrigins() {
