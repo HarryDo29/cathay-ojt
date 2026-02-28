@@ -1,11 +1,9 @@
 package com.cathay.apigateway.service;
 
-import com.cathay.apigateway.data.config.ServiceConfig;
 import com.cathay.apigateway.entity.FilterEntity;
 import com.cathay.apigateway.entity.ServiceFilterEntity;
 import com.cathay.apigateway.interfaces.IServiceFilterRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

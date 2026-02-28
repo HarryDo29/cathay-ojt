@@ -2,7 +2,6 @@ package com.cathay.apigateway.config;
 
 import com.cathay.apigateway.entity.FilterEntity;
 import com.cathay.apigateway.entity.ServiceEntity;
-import com.cathay.apigateway.filter.AuthenticationGatewayFilterFactory;
 import com.cathay.apigateway.service.RouteRegistryService;
 import com.cathay.apigateway.service.ServiceFilterService;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -12,7 +11,6 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,21 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 public class GatewayConfig {
-    private final AuthenticationGatewayFilterFactory authenticationFilter;
     private final RouteRegistryService routeService;
     private final ServiceFilterService serviceFilterService;
 
-    public GatewayConfig(AuthenticationGatewayFilterFactory authenticationFilter,
-                         RouteRegistryService routeService, ServiceFilterService serviceFilterService) {
-        this.authenticationFilter = authenticationFilter;
+    public GatewayConfig(RouteRegistryService routeService, 
+        ServiceFilterService serviceFilterService) {
         this.routeService = routeService;
         this.serviceFilterService = serviceFilterService;
     }
 
     @Bean
     public RouteDefinitionLocator customLocator(){
-       // DYNAMIC CODE - Load from config
-       return() -> {
+        // DYNAMIC CODE - Load from config
+        return() -> {
            Collection<ServiceEntity> services = routeService.getServiceCacheMap();
            log.info("🔍 RouteDefinitionLocator called. Services in cache: " + services.size());
            

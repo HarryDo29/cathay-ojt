@@ -22,7 +22,6 @@ import java.util.List;
 @Component
 public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
-
     private static final String DEFAULT_TOKEN_COST = "1";
 
     private final RedisScript<Long> accountRateLimitLuaScript;
