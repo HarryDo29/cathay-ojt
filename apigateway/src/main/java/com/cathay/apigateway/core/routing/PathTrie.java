@@ -42,10 +42,10 @@ public class PathTrie {
                 // nếu chưa tồn tại thì tạo mới một TrieNode và thêm vào children
                 // nếu đã tồn tại thì trả về TrieNode hiện có
             }
-            // node cuối cùng là node rỗng không có children, paramNode, paramName
-            // chỉ có operations để lưu các phương thức HTTP tương ứng với endpoint
-            current.operations.computeIfAbsent(endpoint.getMethod().toUpperCase(), k -> endpoint);
         }
+        // node cuối cùng là node rỗng không có children, paramNode, paramName
+        // chỉ có operations để lưu các phương thức HTTP tương ứng với endpoint
+        current.operations.computeIfAbsent(endpoint.getMethod().toUpperCase(), k -> endpoint);
     }
 
     public MatchResult matchTrie(String path, String method){
