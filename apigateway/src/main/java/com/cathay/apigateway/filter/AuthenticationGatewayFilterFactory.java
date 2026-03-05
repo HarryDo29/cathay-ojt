@@ -50,6 +50,7 @@ public class AuthenticationGatewayFilterFactory extends
                 ServerHttpRequest req = exchange.getRequest()
                         .mutate()
                         .header("X-Internal-API-Key", internalApiKey)  // ← Thêm key cho public endpoints
+                        .header("Public-Endpoint", "true")  // Optional: đánh dấu đây là public endpoint
                         .build();
                 return chain.filter(exchange.mutate().request(req).build());
             }

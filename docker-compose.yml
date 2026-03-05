@@ -32,6 +32,12 @@ services:
       timeout: 3s
       retries: 5
 
+  cathay-apigateway-ojt:
+    image: apigateway:latest
+    container_name: cathay-apigateway-ojt
+    ports:
+      - "8080:8080" # Map port 8080 của máy thật vào 8080 của container
+
 volumes:
   apigateway_pg_data:
   apigateway_redis_data:

@@ -44,6 +44,11 @@ public class AccountBasedRateLimitGatewayFilterFactory
     public GatewayFilter apply(AccountBasedRateLimitGatewayFilterFactory.Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
+            String isPublicEndpoint = request.getHeaders().getFirst("Public-Endpoint");
+            if ("true".equalsIgnoreCase(isPublicEndpoint)) {
+                log.info("Public endpoint detected, skipping account-based rate limit.");
+                return chain.filter(exchange);
+            }
             String accountId = request.getHeaders().getFirst("X-User-Id");
 
             if (accountId == null || accountId.isEmpty()) {
