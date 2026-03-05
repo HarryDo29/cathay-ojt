@@ -53,9 +53,14 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
         }
 
         return executeRateLimit(ip, config)
-                .flatMap(allowed -> {
-                    if (allowed) {
+                .flatMap(result -> {
+                    if (result == 1L) {
                         return chain.filter(exchange);
+                    }
+                    if (result == -1L) {
+                        log.warn("IP blacklisted: {}", ip);
+                        return errorHandler.writeError(exchange,
+                                new NotFoundException("Access denied"), HttpStatus.FORBIDDEN);
                     }
                     log.warn("Rate limit exceeded for IP: {}", ip);
                     return errorHandler.writeError(exchange,
@@ -76,8 +81,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
                 .orElse(null);
     }
 
-    // Execute the Lua script for rate limiting and return whether the request is allowed
-    private Mono<Boolean> executeRateLimit(String ip, RateLimitEntity config) {
+    private Mono<Long> executeRateLimit(String ip, RateLimitEntity config) {
         List<String> keys = Collections.singletonList(ip);
         List<String> args = List.of(
                 config.getBurstCapacity().toString(),
@@ -88,8 +92,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
         );
         log.info("Executing IP-based rate limit for request: {}", ip);
         return reactiveRedisTemplate.execute(ipRateLimitLuaScript, keys, args)
-                .next()
-                .map(result -> result == 1L);
+                .next();
     }
 
     @Override

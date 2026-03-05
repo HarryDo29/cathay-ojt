@@ -67,7 +67,6 @@ app:
         header: X-Api-Key
         enabled: true
 
-
   routes:
     # ============================================
     # TABLE: services
@@ -724,12 +723,9 @@ app:
           ttl: 120000          # token expiration in mlseconds
           enabled: true
 
-access_token:
-  secret: ${access_token.secret}
-  expire: ${access_token.expire}
-refresh_token:
-  secret: ${refresh_token.secret}
-  expire: ${refresh_token.expire}
+access-token:
+  secret: ${access-token.secret}
+  expire: ${access-token.expire}
 
 internal:
   api:
