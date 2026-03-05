@@ -16,7 +16,7 @@ import java.nio.file.AccessDeniedException;
 @Slf4j
 @Component
 public class AuthorizationGatewayFilterFactory extends
-        AbstractGatewayFilterFactory<AuthorizationGatewayFilterFactory.AuthorConfig> {
+        AbstractGatewayFilterFactory<AuthorizationGatewayFilterFactory.Config> {
 
     private final EndpointRegisterService endpointRegisterService;
     private final RoleService roleService;
@@ -24,14 +24,14 @@ public class AuthorizationGatewayFilterFactory extends
 
     public AuthorizationGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
                                              RoleService roleService, ErrorHandler errorHandler) {
-        super(AuthorConfig.class);
+        super(Config.class);
         this.endpointRegisterService = endpointRegisterService;
         this.roleService = roleService;
         this.errorHandler = errorHandler;
     }
 
     @Override
-    public GatewayFilter apply(AuthorConfig config) {
+    public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             val path = exchange.getRequest().getURI().getPath();
             val method = exchange.getRequest().getMethod();
@@ -67,6 +67,6 @@ public class AuthorizationGatewayFilterFactory extends
         };
     }
 
-    public static class AuthorConfig {
+    public static class Config {
     }
 }

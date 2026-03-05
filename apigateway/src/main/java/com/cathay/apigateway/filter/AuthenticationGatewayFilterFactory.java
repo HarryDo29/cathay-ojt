@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @Component
 public class AuthenticationGatewayFilterFactory extends
-        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.AuthenConfig> {
+        AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config> {
 
     private final EndpointRegisterService endpointRegisterService;
     private final JwtUtil jwtUtil;
@@ -30,7 +30,7 @@ public class AuthenticationGatewayFilterFactory extends
 
     public AuthenticationGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
                                               JwtUtil jwtUtil, ErrorHandler errorHandler) {
-        super(AuthenConfig.class);
+        super(Config.class);
         this.endpointRegisterService = endpointRegisterService;
         this.jwtUtil = jwtUtil;
         this.errorHandler = errorHandler;
@@ -40,7 +40,7 @@ public class AuthenticationGatewayFilterFactory extends
     private String internalApiKey;
 
     @Override
-    public @NonNull GatewayFilter apply(AuthenConfig config) {
+    public @NonNull GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             val path = exchange.getRequest().getURI().getPath();
             val method = exchange.getRequest().getMethod();
@@ -94,6 +94,13 @@ public class AuthenticationGatewayFilterFactory extends
             String role = jwtUtil.extractClaim(
                     claim, claims -> claims.get("role", String.class));
 
+            // remove sensitive info from claim (if any) before forward to downstream service
+            String existingApiKey = exchange.getRequest().getHeaders().getFirst("X-Internal-API-Key");
+            if (existingApiKey != null && !existingApiKey.isEmpty()) {
+                // Header exists and is not empty
+                exchange.getRequest().getHeaders().remove("X-Internal-API-Key");
+            }
+
             // Create new request with header contain account in4 and internal API key
             ServerHttpRequest req = exchange.getRequest()
                     .mutate()
@@ -106,6 +113,6 @@ public class AuthenticationGatewayFilterFactory extends
         };
     }
 
-    public static class AuthenConfig {
+    public static class Config {
     }
 }
