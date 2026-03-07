@@ -34,6 +34,17 @@ This service is configured to accept only requests from API Gateway.
 - Missing or invalid header returns `401 Unauthorized`.
 - In Docker Compose, this service exposes port `8081` only to internal services (`expose`), not to the public host.
 
+## Seed Data On Container Startup
+
+Application will seed default data only when the `users` table is empty.
+
+- Enable/disable seed on startup with `SEED_ON_BOOT` (`true` or `false`).
+- Seeded account is controlled by:
+  - `SEED_ADMIN_EMAIL`
+  - `SEED_ADMIN_USERNAME`
+  - `SEED_ADMIN_PASSWORD`
+- If `users` already has data, seed is skipped automatically.
+
 ## Project setup
 
 ```bash

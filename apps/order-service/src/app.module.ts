@@ -7,6 +7,7 @@ import { OrderItem } from './entities/order-item.entity.js';
 import { ProductsModule } from './products/products.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { GatewayMiddleware } from './common/middlewares/gateway.middleware.js';
+import { DataSeedService } from './common/seeding/data.seed.service.js';
 
 @Module({
   imports: [
@@ -27,9 +28,11 @@ import { GatewayMiddleware } from './common/middlewares/gateway.middleware.js';
         synchronize: true,
       }),
     }),
+    TypeOrmModule.forFeature([Product, Order, OrderItem]),
     ProductsModule,
     OrdersModule,
   ],
+  providers: [DataSeedService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

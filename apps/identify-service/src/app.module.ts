@@ -5,6 +5,7 @@ import { User } from './common/entities/user.entity.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { GatewayMiddleware } from './common/middleware/gateway.middleware.js';
+import { SeedService } from './common/seed/seed.service.js';
 
 @Module({
   imports: [
@@ -25,9 +26,11 @@ import { GatewayMiddleware } from './common/middleware/gateway.middleware.js';
         synchronize: true,
       }),
     }),
+    TypeOrmModule.forFeature([User]),
     AuthModule,
     UsersModule,
   ],
+  providers: [SeedService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
