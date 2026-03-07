@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity.js';
@@ -6,6 +6,7 @@ import { Order } from './entities/order.entity.js';
 import { OrderItem } from './entities/order-item.entity.js';
 import { ProductsModule } from './products/products.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { GatewayMiddleware } from './common/middlewares/gateway.middleware.js';
 
 @Module({
   imports: [
@@ -30,4 +31,8 @@ import { OrdersModule } from './orders/orders.module.js';
     OrdersModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(GatewayMiddleware).forRoutes('*');
+  }
+}

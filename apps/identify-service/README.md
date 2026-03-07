@@ -25,6 +25,15 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Internal Access From API Gateway
+
+This service is configured to accept only requests from API Gateway.
+
+- Every request must include header `x-gateway-secret`.
+- Header value must match `INTERNAL_GATEWAY_SECRET` in the service environment.
+- Missing or invalid header returns `401 Unauthorized`.
+- In Docker Compose, this service exposes port `8081` only to internal services (`expose`), not to the public host.
+
 ## Project setup
 
 ```bash
