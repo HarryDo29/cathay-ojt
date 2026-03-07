@@ -17,8 +17,8 @@ services:
 
   apigateway-server:
     build:
-      context: ./apigateway
-    image: apigateway:latest
+      context: ./apps/apigateway
+    image: apigateway:v1
     container_name: apigateway-server
     ports:
       - "8080:8080"
@@ -44,6 +44,17 @@ services:
       timeout: 5s
       retries: 5
 
+  identity-service:
+    build:
+      context: ./apps/identify-service
+    image: identify-service:latest
+    container_name: identity-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      identity-postgres:
+        condition: service_healthy
+
   # ── order ───────────────────────────────────────────
   order-postgres:
     image: postgres:17
@@ -61,6 +72,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  order-service:
+    build:
+      context: ./apps/order-service
+    image: order-service:latest
+    container_name: order-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      order-postgres:
+        condition: service_healthy
 
 volumes:
   # apigateway_pg_data:
