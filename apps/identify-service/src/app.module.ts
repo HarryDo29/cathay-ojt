@@ -14,13 +14,13 @@ import { GatewayMiddleware } from './common/middleware/gateway.middleware.js';
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: () => ({
+      useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: 'localhost',
-        port: 5433,
-        username: 'identity_service',
-        password: 'generated_password_for_fun',
-        database: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USERNAME'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_NAME'),
         entities: [User],
         synchronize: true,
       }),

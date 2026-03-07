@@ -70,5 +70,5 @@ COPY --from=build /usr/src/app/dist ./dist
 # Expose the port that the application listens on.
 EXPOSE 8082
 
-# Run the application.
-CMD npm start
+# Run the compiled app directly in production image (Nest CLI is a dev dependency).
+CMD ["node", "dist/main"]

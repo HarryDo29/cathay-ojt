@@ -74,14 +74,14 @@ app:
     services:
         - id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           name: identity-service
-          url: http://host.docker.internal:8081 #http://localhost:8081
+          url: http://identity-service:8080 #http://localhost:8081
           path: /api/v1/identify-service/**
           strip_prefix: 3
           enabled: true
 
         - id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           name: order-service
-          url: http://host.docker.internal:8082 #http://localhost:8082
+          url: http://order-service:8080 #http://localhost:8082
           path: /api/v1/order-service/**
           strip_prefix: 3
           enabled: true
