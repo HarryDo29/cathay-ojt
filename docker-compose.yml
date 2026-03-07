@@ -1,23 +1,6 @@
 version: '3.9'
 
 services:
-  apigateway-postgres: 
-    image: postgres:16 
-    container_name: apigateway-postgres
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: apigateway_service
-      POSTGRES_PASSWORD: generated_password_for_fun
-    volumes:
-      - apigateway_pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apigateway_service -d postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   apigateway-redis:
     image: redis:7
     container_name: apigateway-redis
@@ -32,12 +15,55 @@ services:
       timeout: 3s
       retries: 5
 
-  cathay-apigateway-ojt:
+  apigateway-server:
+    build:
+      context: ./apigateway
     image: apigateway:latest
-    container_name: cathay-apigateway-ojt
+    container_name: apigateway-server
     ports:
-      - "8080:8080" # Map port 8080 của máy thật vào 8080 của container
+      - "8080:8080"
+    depends_on:
+      apigateway-redis:
+        condition: service_healthy
+
+  # ── identity ────────────────────────────────────────
+  identity-postgres:
+    image: postgres:17
+    container_name: identity-postgres
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: identity_service
+      POSTGRES_PASSWORD: generated_password_for_fun
+    volumes:
+      - identity_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U identity_service -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── order ───────────────────────────────────────────
+  order-postgres:
+    image: postgres:17
+    container_name: order-postgres
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: order_service
+      POSTGRES_PASSWORD: generated_password_for_fun
+    volumes:
+      - order_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_service -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  apigateway_pg_data:
+  # apigateway_pg_data:
   apigateway_redis_data:
+  identity_pg_data:
+  order_pg_data:
