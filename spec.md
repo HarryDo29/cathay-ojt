@@ -12,7 +12,7 @@ API gateway
     - Caching: lưu trữ data tạm thời —> tăng hiệu suất
     - Transformation: biến đổi kiểu dữ liệu (định dạng req/res)
     - Aggregation: kết hợp nhiều lệnh gọi service thành 1 yêu cầu duy nhất
- Cross-cutting concerns:
+Cross-cutting concerns:
 	- là 1 phần của chương trình phụ thuộc hoặc phải ảnh hưởng bởi nhiều module hoàn chỉnh khác. 
 	- ứng dụng thường được chia làm các module, tuy nhiên trong những module này tồn tại những tác vụ bắt buộc —> tạo ra sự lặp lại —> cross-cutting
 
