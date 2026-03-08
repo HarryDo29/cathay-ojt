@@ -10,7 +10,7 @@ Hướng dẫn này giúp người mới pull repo có thể build và chạy to
 ## Bước 1: Clone repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/HarryDo29/cathay-ojt.git
 cd cathay
 ```
 
