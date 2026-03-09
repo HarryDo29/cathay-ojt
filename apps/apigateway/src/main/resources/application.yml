@@ -682,8 +682,8 @@ app:
         # IP-based: chống DDoS/bot flood, áp dụng cho tất cả endpoints
         - id: 1a2b3c4d-5555-4000-8000-000000000001
           key_type: IP
-          replenish_rate: 1   # tokens/s
-          burst_capacity: 20  # max tokens
+          replenish_rate: 10   # tokens/s
+          burst_capacity: 100  # max tokens
           ttl: 120000          # token expiration in mlseconds
           enabled: true
 
