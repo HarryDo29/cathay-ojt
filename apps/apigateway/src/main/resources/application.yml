@@ -681,18 +681,76 @@ app:
     rules:
         # IP-based: chống DDoS/bot flood, áp dụng cho tất cả endpoints
         - id: 1a2b3c4d-5555-4000-8000-000000000001
+          type: TOKEN_BUCKET
           key_type: IP
-          replenish_rate: 10   # tokens/s
-          burst_capacity: 100  # max tokens
-          ttl: 120000          # token expiration in mlseconds
+          rule: '{
+            "replenish_rate": "10",
+            "burst_capacity": "100",
+            "ttl": "120000"
+          }'
           enabled: true
 
+        # IP-based: giới hạn chặt cho các endpoint đăng nhập/đăng kí/quên mật khẩu/reset mật khẩu
+        - id: 1a2b3c4d-5555-4000-8000-000000000002
+          type: SLIDING_WINDOW
+          key_type: EMAIL
+          rule: '{
+            "method": ["POST", "PUT", "PATCH"],
+            "path_regex": "^/api(?:/[^/]+)*/auth/(login|register|reset-password|forgot-password)(?:/.*)?$",
+            "windows": "60000",
+            "limit": "10",
+            "priority": "1"
+          }'
+          enabled: true
+
+#        # IP-based: giới hạn lỏng cho các endpoint còn lại, áp dụng cho tất cả endpoints ko có auth
+#        - id: 1a2b3c4d-5555-4000-8000-000000000003
+#          type: SLIDING_WINDOW
+#          key_type: IP
+#          rule: '{
+#            "method": ["GET", "HEAD"],
+#            "path_regex": "*",
+#            "windows": "60000",
+#            "limit": "20",
+#            "priority": "2"
+#          }'
+#          enabled: true
+
         # Account-based: quota per user, áp dụng cho protected endpoints
-        - id: 2b3c4d5e-6666-4000-8000-000000000002
+        - id: 2b3c4d5e-6666-4000-8000-000000000003
+          type: SLIDING_WINDOW
           key_type: ACCOUNT_ID
-          replenish_rate: 10   # tokens/s
-          burst_capacity: 50   # max tokens
-          ttl: 120000          # token expiration in mlseconds
+          rule: '{
+            "method": ["GET", "POST"],
+            "path_regex": "^/api/.*/(export|download|generate).*$",
+            "windows": "120000",
+            "limit": "2",
+            "priority": "1"
+          }'
+          enabled: true
+
+        - id: 2b3c4d5e-6666-4000-8000-000000000004
+          type: SLIDING_WINDOW
+          key_type: ACCOUNT_ID
+          rule: '{
+            "method": ["POST", "PUT", "PATCH", "DELETE"],
+            "path_regex": "*",
+            "windows": "60000",
+            "limit": "20",
+            "priority": "2"
+          }'
+          enabled: true
+
+        - id: 2b3c4d5e-6666-4000-8000-000000000005
+          type: SLIDING_WINDOW
+          key_type: ACCOUNT_ID
+          rule: '{
+            "method": ["GET", "HEAD"],
+            "path_regex": "*",
+            "windows": "60000",
+            "limit": "100",
+            "priority": "3"
+          }'
           enabled: true
 
 access-token:

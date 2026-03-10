@@ -2,6 +2,8 @@ package com.cathay.apigateway.filter;
 
 import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
+import com.cathay.apigateway.enums.RateLimitType;
+import com.cathay.apigateway.model.TokenBucketRule;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.cathay.apigateway.util.RequestUtil;
@@ -76,19 +78,20 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
     private RateLimitEntity findIpRateLimitConfig() {
         return rateLimitService.getRateLimitList()
                 .stream()
-                .filter(r -> r.getKeyType() == KeyType.IP)
+                .filter(r -> r.getKeyType() == KeyType.IP && r.getType() == RateLimitType.TOKEN_BUCKET)
                 .findFirst()
                 .orElse(null);
     }
 
     private Mono<Long> executeRateLimit(String ip, RateLimitEntity config) {
         List<String> keys = Collections.singletonList(ip);
+        TokenBucketRule rule = TokenBucketRule.fromJson(config.getRule());
         List<String> args = List.of(
-                config.getBurstCapacity().toString(),
-                config.getReplenishRate().toString(),
+                rule.getBurst_capacity().toString(),
+                rule.getReplenish_rate().toString(),
                 String.valueOf(Instant.now().toEpochMilli()),
                 DEFAULT_TOKEN_COST,
-                String.valueOf(config.getTtl())
+                String.valueOf(rule.getTtl())
         );
         log.info("Executing IP-based rate limit for request: {}", ip);
         return reactiveRedisTemplate.execute(ipRateLimitLuaScript, keys, args)

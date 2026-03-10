@@ -38,4 +38,10 @@ public class RedisConfig {
         ClassPathResource resource = new ClassPathResource("script/account_rate_limit.lua");
         return RedisScript.of(resource, Long.class);
     }
+
+    @Bean
+    public RedisScript<Long> emailRateLimitLuaScript() {
+        ClassPathResource resource = new ClassPathResource("script/email_rate_limit.lua");
+        return RedisScript.of(resource, Long.class);
+    }
 }

@@ -1,21 +1,22 @@
 package com.cathay.apigateway.entity;
 
 import com.cathay.apigateway.enums.KeyType;
+import com.cathay.apigateway.enums.RateLimitType;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Data
 //@Entity
 public class RateLimitEntity {
 //    @Id
-    private String id;
+    private UUID id;
 
-    private KeyType keyType; // e.g., IP, USER_ID, API_KEY
+    private RateLimitType type; // e.g., TOKEN_BUCKET, SLIDING_WINDOW
 
-    private Integer replenishRate; // tokens added per second
+    private KeyType keyType; // e.g., IP, ACCOUNT_ID
 
-    private Integer burstCapacity; // maximum tokens in the bucket
-
-    private Integer ttl; // time to live for the rate limit configuration
+    private String rule; // rule of rate limiting depends on the rate type
 
     private Boolean enabled;
 }

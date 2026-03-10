@@ -1,7 +1,6 @@
 package com.cathay.apigateway.filter;
 
-import com.cathay.apigateway.entity.RateLimitEntity;
-import com.cathay.apigateway.enums.KeyType;
+import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import java.util.List;
 @Component
 public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
-    private static final String DEFAULT_TOKEN_COST = "1";
 
     private final RedisScript<Long> accountRateLimitLuaScript;
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
@@ -56,14 +54,15 @@ public class AccountBasedRateLimitGatewayFilterFactory
                 return errorHandler.writeError(exchange,
                         new IllegalArgumentException("Missing X-User-Id header"), HttpStatus.FORBIDDEN);
             }
-
-            RateLimitEntity rateLimitEntity = findAccountRateLimitConfig();
-            if  (rateLimitEntity == null) {
+            String uri = request.getURI().getPath();
+            String method = request.getMethod().name();
+            SlideWindowRule rule = findAccountRateLimitConfig(uri, method);
+            if  (rule == null) {
                 log.warn("No account-based rate limit configuration found, allowing request");
                 return chain.filter(exchange);
             }
-
-            return executeRateLimit(accountId, rateLimitEntity)
+            String request_id = request.getHeaders().getFirst("X-Request-Id");
+            return executeRateLimit(accountId, request_id, rule)
                     .flatMap(allowed -> {
                         if (allowed) {
                             return chain.filter(exchange);
@@ -81,23 +80,24 @@ public class AccountBasedRateLimitGatewayFilterFactory
     }
 
     // Get rate limit rule for IP-based key type
-    private RateLimitEntity findAccountRateLimitConfig() {
-        return rateLimitService.getRateLimitList()
+    private SlideWindowRule findAccountRateLimitConfig(String uri, String method) {
+        return rateLimitService.getSlideWindowRuleList()
                 .stream()
-                .filter(r -> r.getKeyType() == KeyType.ACCOUNT_ID
-                        && Boolean.TRUE.equals(r.getEnabled()))
+                .filter(rule ->
+                    uri.matches(rule.getPath_regex()) && List.of(rule.getMethods()).contains(method)
+                )
                 .findFirst()
                 .orElse(null);
     }
 
     // Execute the Lua script for rate limiting and return whether the request is allowed
-    private Mono<Boolean> executeRateLimit(String accountId, RateLimitEntity config) {
-        List<String> keys = Collections.singletonList(accountId);
+    private Mono<Boolean> executeRateLimit(String accountId, String request_id, SlideWindowRule config) {
+        List<String> keys = Collections.singletonList(accountId + ":" + config.getPriority()); // use accountId as the key for rate limiting
         List<String> args = List.of(
-                config.getBurstCapacity().toString(),
-                config.getReplenishRate().toString(),
+                config.getLimit().toString(),
+                config.getWindow().toString(),
                 String.valueOf(Instant.now().toEpochMilli()),
-                DEFAULT_TOKEN_COST
+                request_id
         );
 
         return reactiveRedisTemplate.execute(accountRateLimitLuaScript, keys, args)
