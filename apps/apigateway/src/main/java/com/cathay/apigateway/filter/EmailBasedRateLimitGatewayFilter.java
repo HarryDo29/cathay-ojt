@@ -4,16 +4,20 @@ import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.model.SlideWindowRule;
+import com.cathay.apigateway.model.SlidingWindowState;
+import com.cathay.apigateway.model.TokenBucketRule;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -22,9 +26,9 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -32,22 +36,34 @@ public class EmailBasedRateLimitGatewayFilter
         extends AbstractGatewayFilterFactory<EmailBasedRateLimitGatewayFilter.Config> {
     private final ObjectMapper objectMapper;
 
-    private final RedisScript<Long> emailRateLimitLuaScript;
-    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final RateLimitService rateLimitService;
     private final ErrorHandler errorHandler;
 
-    public EmailBasedRateLimitGatewayFilter(RedisScript<Long> emailRateLimitLuaScript,
-                                            ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
-                                            RateLimitService rateLimitService,
+    public EmailBasedRateLimitGatewayFilter(RateLimitService rateLimitService,
                                             ObjectMapper objectMapper,
                                             ErrorHandler errorHandler) {
         super(Config.class);
-        this.emailRateLimitLuaScript = emailRateLimitLuaScript;
-        this.reactiveRedisTemplate = reactiveRedisTemplate;
         this.rateLimitService = rateLimitService;
         this.objectMapper = objectMapper;
         this.errorHandler = errorHandler;
+    }
+
+    private final Cache<String, SlidingWindowState> cache = Caffeine.newBuilder()
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .maximumSize(1000)
+            .build();
+
+    public boolean tryAccess(String email, SlideWindowRule rule) {
+        String cacheKey = buildCacheKey(email, rule);
+        SlidingWindowState state = cache.get(cacheKey, k -> new SlidingWindowState(
+                rule.getLimit(),
+                Duration.ofSeconds(rule.getWindow())
+        ));
+        return state.tryConsume();
+    }
+
+    private static String buildCacheKey(String accountId, SlideWindowRule rule) {
+        return accountId + "|" + "auth-service" + "|" + String.join(",", rule.getMethods());
     }
 
 
@@ -61,58 +77,22 @@ public class EmailBasedRateLimitGatewayFilter
                 log.info("No email-based rate limit rule found, skipping rate limit for URI: {}", uri);
                 return chain.filter(exchange);
             }
-
-            String requestId = exchange.getRequest().getHeaders().getFirst("X-Request-Id");
-            return getEmailFromRequestBody(exchange)
+            return getEmailFromRequestBody(exchange) // get email from request body
                     .flatMap(email -> {
-                        if (email == null || email.isBlank()) {
-                            log.warn("Missing email in request body for URI: {}", uri);
+                        if (email.isEmpty()) {
+                            log.warn("No email found in request body for URI: {}", uri);
                             return errorHandler.writeError(exchange,
-                                    new IllegalArgumentException("Missing email in request body"),
-                                    HttpStatus.BAD_REQUEST);
+                                    new IllegalArgumentException("Missing email in request body"), HttpStatus.FORBIDDEN);
                         }
-
-                        return executeRateLimit(email, requestId, rule)
-                            .flatMap(allowed -> {
-                                if (allowed) {
-                                    log.info("Email allowed by rate limit for URI: {}", uri);
-                                    return chain.filter(exchange);
-                                }
-                                log.warn("Email blocked by rate limit for URI: {}", uri);
-                                return errorHandler.writeError(exchange,
-                                    new RuntimeException("Too many requests"),
-                                    HttpStatus.TOO_MANY_REQUESTS);
-                            });
-                    })
-                    .switchIfEmpty(Mono.defer(() -> {
-                        log.warn("Missing email in request body for URI: {}", uri);
+                        if (this.tryAccess(email, rule)) { // check rate limit
+                            log.info("Email {} allowed by rate limit rule for URI: {}", email, uri);
+                            return chain.filter(exchange);
+                        }
+                        log.warn("Email {} blocked by rate limit rule for URI: {}", email, uri);
                         return errorHandler.writeError(exchange,
-                                new IllegalArgumentException("Missing email in request body"),
-                                HttpStatus.BAD_REQUEST);
-                    }))
-                    .onErrorResume(IllegalArgumentException.class, ex ->
-                            errorHandler.writeError(exchange, ex, HttpStatus.BAD_REQUEST))
-                    .onErrorResume(ex -> {
-                        log.error("Rate limit check failed (fail-open): {}", ex.getMessage(), ex);
-                        return chain.filter(exchange);
+                                new IllegalArgumentException("Too Many Requests"), HttpStatus.TOO_MANY_REQUESTS);
                     });
         };
-    }
-
-    // Execute the Lua script for rate limiting and return whether the request is allowed
-    private Mono<Boolean> executeRateLimit(String email, String request_id, SlideWindowRule config) {
-        // use accountId as the key for rate limiting
-        List<String> keys = Collections.singletonList(email);
-        List<String> args = List.of(
-                config.getLimit().toString(),
-                config.getWindow().toString(),
-                String.valueOf(Instant.now().toEpochMilli()),
-                request_id
-        );
-
-        return reactiveRedisTemplate.execute(emailRateLimitLuaScript, keys, args)
-                .next()
-                .map(result -> result == 1L);
     }
 
     // get email-based rate limit rule from cached list, return null if not found

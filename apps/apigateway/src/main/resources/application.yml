@@ -686,7 +686,7 @@ app:
           rule: '{
             "replenish_rate": "10",
             "burst_capacity": "100",
-            "ttl": "120000"
+            "ttl": "120"
           }'
           enabled: true
 
@@ -697,7 +697,7 @@ app:
           rule: '{
             "method": ["POST", "PUT", "PATCH"],
             "path_regex": "^/api(?:/[^/]+)*/auth/(login|register|reset-password|forgot-password)(?:/.*)?$",
-            "windows": "60000",
+            "windows": "60",
             "limit": "10",
             "priority": "1"
           }'
@@ -710,7 +710,7 @@ app:
 #          rule: '{
 #            "method": ["GET", "HEAD"],
 #            "path_regex": "*",
-#            "windows": "60000",
+#            "windows": "60",
 #            "limit": "20",
 #            "priority": "2"
 #          }'
@@ -723,7 +723,7 @@ app:
           rule: '{
             "method": ["GET", "POST"],
             "path_regex": "^/api/.*/(export|download|generate).*$",
-            "windows": "120000",
+            "windows": "120",
             "limit": "2",
             "priority": "1"
           }'
@@ -735,7 +735,7 @@ app:
           rule: '{
             "method": ["POST", "PUT", "PATCH", "DELETE"],
             "path_regex": "*",
-            "windows": "60000",
+            "windows": "60",
             "limit": "20",
             "priority": "2"
           }'
@@ -747,7 +747,7 @@ app:
           rule: '{
             "method": ["GET", "HEAD"],
             "path_regex": "*",
-            "windows": "60000",
+            "windows": "60",
             "limit": "100",
             "priority": "3"
           }'
