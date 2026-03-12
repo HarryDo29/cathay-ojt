@@ -17,6 +17,7 @@ import java.util.*;
 @Slf4j
 @Service
 public class RateLimitService {
+
     @Getter
     public volatile List<RateLimitEntity> rateLimitList = List.of();
     @Getter

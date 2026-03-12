@@ -24,23 +24,21 @@ public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
 
     private final RateLimitService rateLimitService;
+    private final Cache<String, SlidingWindowState> accountRateLimitCache;
     private final ErrorHandler errorHandler;
 
     public AccountBasedRateLimitGatewayFilterFactory(RateLimitService rateLimitService,
+                                                     Cache<String, SlidingWindowState> accountRateLimitCache,
                                                      ErrorHandler errorHandler) {
         super(Config.class);
         this.rateLimitService = rateLimitService;
+        this.accountRateLimitCache = accountRateLimitCache;
         this.errorHandler = errorHandler;
     }
 
-    private final Cache<String, SlidingWindowState> cache = Caffeine.newBuilder()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
-            .maximumSize(1000)
-            .build();
-
     public boolean tryAccess(String accountId, String uri, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(accountId, uri, rule);
-        SlidingWindowState state = cache.get(cacheKey, k -> new SlidingWindowState(
+        SlidingWindowState state = accountRateLimitCache.get(cacheKey, k -> new SlidingWindowState(
                 rule.getLimit(),
                 Duration.ofSeconds(rule.getWindow())
         ));

@@ -3,13 +3,11 @@ package com.cathay.apigateway.filter;
 import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
-import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.TokenBucketRule;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.cathay.apigateway.util.RequestUtil;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +23,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -36,15 +32,15 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
 
     private final RateLimitService rateLimitService;
     private final ErrorHandler errorHandler;
-
-    private final Cache<String, Bucket> cache = Caffeine.newBuilder()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
-            .build();
+    private final Cache<String, Bucket> ipRateLimitCache;
 
     private Bucket createNewBucket(TokenBucketRule rule) {
         Bandwidth limit = Bandwidth.builder()
-                .capacity(rule.getBurst_capacity())
-                .refillGreedy(rule.getReplenish_rate(), Duration.ofMinutes(rule.getTtl()))
+                .capacity(rule.getBurst_capacity()) // set capacity
+                .refillIntervally(
+                        rule.getReplenish_rate(), // set replenish rate
+                        Duration.ofMinutes(rule.getTtl()) // set ttl
+                )// sau ttl thì nạp lại replenish_rate token vào bucket
                 .build();
         return Bucket.builder()
                 .addLimit(limit)
@@ -52,7 +48,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
     }
 
     public boolean tryAccess(String key, TokenBucketRule rule) {
-        Bucket bucket = cache.get(key, k -> createNewBucket(rule));
+        Bucket bucket = ipRateLimitCache.get(key, k -> createNewBucket(rule));
         return bucket.tryConsume(1);
     }
 

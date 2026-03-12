@@ -5,15 +5,11 @@ import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.SlidingWindowState;
-import com.cathay.apigateway.model.TokenBucketRule;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -27,35 +23,31 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 public class EmailBasedRateLimitGatewayFilter
         extends AbstractGatewayFilterFactory<EmailBasedRateLimitGatewayFilter.Config> {
-    private final ObjectMapper objectMapper;
 
     private final RateLimitService rateLimitService;
+    private final ObjectMapper objectMapper;
+    private final Cache<String, SlidingWindowState> emailRateLimitCache;
     private final ErrorHandler errorHandler;
 
     public EmailBasedRateLimitGatewayFilter(RateLimitService rateLimitService,
                                             ObjectMapper objectMapper,
+                                            Cache<String, SlidingWindowState> emailRateLimitCache,
                                             ErrorHandler errorHandler) {
         super(Config.class);
         this.rateLimitService = rateLimitService;
         this.objectMapper = objectMapper;
+        this.emailRateLimitCache = emailRateLimitCache;
         this.errorHandler = errorHandler;
     }
 
-    private final Cache<String, SlidingWindowState> cache = Caffeine.newBuilder()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
-            .maximumSize(1000)
-            .build();
-
     public boolean tryAccess(String email, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(email, rule);
-        SlidingWindowState state = cache.get(cacheKey, k -> new SlidingWindowState(
+        SlidingWindowState state = emailRateLimitCache.get(cacheKey, k -> new SlidingWindowState(
                 rule.getLimit(),
                 Duration.ofSeconds(rule.getWindow())
         ));
@@ -68,7 +60,7 @@ public class EmailBasedRateLimitGatewayFilter
 
 
     @Override
-    public GatewayFilter apply(EmailBasedRateLimitGatewayFilter.Config config) {
+    public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             String uri = request.getURI().getPath();

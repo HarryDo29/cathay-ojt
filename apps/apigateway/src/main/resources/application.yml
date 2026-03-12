@@ -1,6 +1,15 @@
 spring:
   application:
     name: ApiGateway project for Cathay Life Vietnam
+#  management:
+#    endpoints:
+#      web:
+#        exposure:
+#          include: "metrics,health,info"
+#    metrics:
+#      export:
+#        prometheus:
+#          enabled: true
   data:
     redis:
       host: apigateway-redis
@@ -695,9 +704,9 @@ app:
           type: SLIDING_WINDOW
           key_type: EMAIL
           rule: '{
-            "method": ["POST", "PUT", "PATCH"],
+            "methods": ["POST", "PUT", "PATCH"],
             "path_regex": "^/api(?:/[^/]+)*/auth/(login|register|reset-password|forgot-password)(?:/.*)?$",
-            "windows": "60",
+            "window": "60",
             "limit": "10",
             "priority": "1"
           }'
@@ -708,9 +717,9 @@ app:
 #          type: SLIDING_WINDOW
 #          key_type: IP
 #          rule: '{
-#            "method": ["GET", "HEAD"],
+#            "methods": ["GET", "HEAD"],
 #            "path_regex": "*",
-#            "windows": "60",
+#            "window": "60",
 #            "limit": "20",
 #            "priority": "2"
 #          }'
@@ -721,9 +730,9 @@ app:
           type: SLIDING_WINDOW
           key_type: ACCOUNT_ID
           rule: '{
-            "method": ["GET", "POST"],
+            "methods": ["GET", "POST"],
             "path_regex": "^/api/.*/(export|download|generate).*$",
-            "windows": "120",
+            "window": "120",
             "limit": "2",
             "priority": "1"
           }'
@@ -733,9 +742,9 @@ app:
           type: SLIDING_WINDOW
           key_type: ACCOUNT_ID
           rule: '{
-            "method": ["POST", "PUT", "PATCH", "DELETE"],
+            "methods": ["POST", "PUT", "PATCH", "DELETE"],
             "path_regex": "*",
-            "windows": "60",
+            "window": "60",
             "limit": "20",
             "priority": "2"
           }'
@@ -745,9 +754,9 @@ app:
           type: SLIDING_WINDOW
           key_type: ACCOUNT_ID
           rule: '{
-            "method": ["GET", "HEAD"],
+            "methods": ["GET", "HEAD"],
             "path_regex": "*",
-            "windows": "60",
+            "window": "60",
             "limit": "100",
             "priority": "3"
           }'

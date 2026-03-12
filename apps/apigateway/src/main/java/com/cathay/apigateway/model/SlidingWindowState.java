@@ -38,4 +38,15 @@ public final class SlidingWindowState {
             lock.unlock();
         }
     }
+
+    public String snapshot() {
+        lock.lock();
+        try {
+            return "limit=" + limit +
+                    ", windowSeconds=" + window.getSeconds() +
+                    ", currentCount=" + timestamps.size();
+        } finally {
+            lock.unlock();
+        }
+    }
 }
