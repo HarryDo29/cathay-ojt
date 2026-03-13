@@ -3,9 +3,11 @@ package com.cathay.apigateway.model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
+import java.util.Set;
+
 @Data
 public class SlideWindowRule {
-        private String[] methods;
+        private Set<String> methods;
         private String path_regex;
         private Integer window; // thời gian tính bằng giây để đếm số lượng request
         private Integer limit;  // số lượng request tối đa trong window

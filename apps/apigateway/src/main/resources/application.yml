@@ -83,14 +83,14 @@ app:
     services:
         - id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           name: identity-service
-          url: http://identity-service:8081
+          url: http://localhost:8081 #http://identity-service:8081
           path: /api/v1/identify-service/**
           strip_prefix: 3
           enabled: true
 
         - id: 1afb1335-ef97-4c31-ad8f-ce25c9384432
           name: order-service
-          url: http://order-service:8082
+          url: http://localhost:8082 #http://order-service:8082
           path: /api/v1/order-service/**
           strip_prefix: 3
           enabled: true
@@ -110,7 +110,12 @@ app:
 
         - id: 58c2dded-2360-4328-b635-7c4854a93f61
           name: AccountBasedRateLimit
-          description: Apply rate limits based on user account (e.g., 1000 requests/day for free users, 10000 requests/day for premium users)
+          description: Apply rate limits based on user account
+          status: ACTIVE
+
+        - id: 9e81111c-c0e1-455f-9e2a-4af0e7c88351
+          name: EmailBasedRateLimit
+          description: Apply rate limits based on email domain for public endpoints needing extra protection
           status: ACTIVE
     # ============================================
     # TABLE: service_filters
@@ -118,21 +123,29 @@ app:
     service_filters:
         - id: 09f2b031-8750-4f05-a4b5-612575fbb0cd
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
-          filter_id: 6d15ddfa-5f0a-40a3-a978-8169862c05fc
+          filter_id: 9e81111c-c0e1-455f-9e2a-4af0e7c88351
           enabled: true
           sort_order: 1
+
+        - id: 09f2b031-8750-4f05-a4b5-612575fbb0cd
+          service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
+          filter_id: 6d15ddfa-5f0a-40a3-a978-8169862c05fc
+          enabled: true
+          sort_order: 2
 
         - id: e9d76d8c-fe8a-4348-b1e2-6a1e3dac8a53
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           filter_id: b33c4792-107f-4e5c-8ba3-c1e48443ee61
           enabled: true
-          sort_order: 2
+          sort_order: 3
 
         - id: 2947ee25-07d2-4223-859b-779ebad2a28a
           service_id: 8ba06267-5e36-4b87-ac05-fb657ae0d2bb
           filter_id: 58c2dded-2360-4328-b635-7c4854a93f61
           enabled: true
-          sort_order: 3
+          sort_order: 4
+
+
 
         - id: 5265c8b1-6c45-448e-be77-d03c83f6f95a
           service_id: 1afb1335-ef97-4c31-ad8f-ce25c9384432

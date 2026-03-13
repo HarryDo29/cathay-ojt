@@ -1,17 +1,21 @@
 package com.cathay.apigateway.filter;
 
+import com.cathay.apigateway.entity.EndpointsEntity;
 import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.SlidingWindowState;
+import com.cathay.apigateway.service.EndpointRegisterService;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
@@ -26,24 +30,30 @@ import java.time.Duration;
 
 @Slf4j
 @Component
-public class EmailBasedRateLimitGatewayFilter
-        extends AbstractGatewayFilterFactory<EmailBasedRateLimitGatewayFilter.Config> {
+public class EmailBasedRateLimitGatewayFilterFactory
+        extends AbstractGatewayFilterFactory<EmailBasedRateLimitGatewayFilterFactory.Config> {
 
+    private final EndpointRegisterService endpointRegisterService;
     private final RateLimitService rateLimitService;
     private final ObjectMapper objectMapper;
     private final Cache<String, SlidingWindowState> emailRateLimitCache;
     private final ErrorHandler errorHandler;
 
-    public EmailBasedRateLimitGatewayFilter(RateLimitService rateLimitService,
-                                            ObjectMapper objectMapper,
-                                            Cache<String, SlidingWindowState> emailRateLimitCache,
-                                            ErrorHandler errorHandler) {
+    public EmailBasedRateLimitGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
+                                                   RateLimitService rateLimitService,
+                                                   ObjectMapper objectMapper,
+                                                   Cache<String, SlidingWindowState> emailRateLimitCache,
+                                                   ErrorHandler errorHandler) {
         super(Config.class);
+        this.endpointRegisterService = endpointRegisterService;
         this.rateLimitService = rateLimitService;
         this.objectMapper = objectMapper;
         this.emailRateLimitCache = emailRateLimitCache;
         this.errorHandler = errorHandler;
     }
+
+    @Value("${internal.api.key}")
+    private String internalApiKey;
 
     public boolean tryAccess(String email, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(email, rule);
@@ -64,26 +74,22 @@ public class EmailBasedRateLimitGatewayFilter
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             String uri = request.getURI().getPath();
+            String method = request.getMethod().toString();
+
             SlideWindowRule rule = this.getEmailRateLimitEntity(); // get email-based rate limit rule from cached list
             if (rule == null) {
                 log.info("No email-based rate limit rule found, skipping rate limit for URI: {}", uri);
                 return chain.filter(exchange);
             }
-            return getEmailFromRequestBody(exchange) // get email from request body
-                    .flatMap(email -> {
-                        if (email.isEmpty()) {
-                            log.warn("No email found in request body for URI: {}", uri);
-                            return errorHandler.writeError(exchange,
-                                    new IllegalArgumentException("Missing email in request body"), HttpStatus.FORBIDDEN);
-                        }
-                        if (this.tryAccess(email, rule)) { // check rate limit
-                            log.info("Email {} allowed by rate limit rule for URI: {}", email, uri);
-                            return chain.filter(exchange);
-                        }
-                        log.warn("Email {} blocked by rate limit rule for URI: {}", email, uri);
-                        return errorHandler.writeError(exchange,
-                                new IllegalArgumentException("Too Many Requests"), HttpStatus.TOO_MANY_REQUESTS);
-                    });
+
+            EndpointsEntity endpoint = endpointRegisterService.getEndpoint(uri, method).getEntity();
+            if (endpoint.isPublic() && !(uri.matches(rule.getPath_regex())
+                    && rule.getMethods().contains(method))) {
+                log.info("Skipping email-based rate limit for public endpoint URI: {}", uri);
+                return chain.filter(exchange);
+            }
+
+            return this.applyEmailRateLimit(exchange, chain, rule);
         };
     }
 
@@ -100,36 +106,43 @@ public class EmailBasedRateLimitGatewayFilter
         return SlideWindowRule.fromJson(rate_limit.getRule());
     }
 
-    // get email from request body, return null if not found
-    private Mono<String> getEmailFromRequestBody(ServerWebExchange exchange) {
-        // cache request body to avoid reading body multiple times
+    private Mono<Void> applyEmailRateLimit(ServerWebExchange exchange,
+                                           GatewayFilterChain chain,
+                                           SlideWindowRule rule) {
         return ServerWebExchangeUtils.cacheRequestBody(exchange, serverHttpRequest -> {
-            // create server request from cached request body
-            ServerRequest serverRequest = ServerRequest.create(
-                    exchange.mutate().request(serverHttpRequest).build(),
-                    HandlerStrategies.withDefaults().messageReaders()
+            ServerRequest cacheRequest = ServerRequest.create(
+                exchange.mutate().request(serverHttpRequest).build(),
+                HandlerStrategies.withDefaults().messageReaders()
             );
-            // read body as string and parse jackson to get email
-            return serverRequest.bodyToMono(String.class)
-                    .flatMap(bodyString -> {
-                        // parse jackson body to get email
-                        try {
-                            JsonNode rootNode = objectMapper.readTree(bodyString);
-                            JsonNode emailNode = rootNode.path("email");
-                            if (!emailNode.isMissingNode() && !emailNode.isNull()) {
-                                String email = emailNode.asText();
-                                // save email to exchange attributes to be used by other filters
-                                exchange.getAttributes().put("USER_EMAIL", email);
-                                // return email as mono to be used by other filters
-                                return Mono.just(email);
-                            }
-                            return Mono.empty(); // no email found
-                        } catch (Exception e) {
-                            log.error("Error reading body JSON: {}", e.getMessage());
-                            return Mono.error(new IllegalArgumentException("Invalid JSON body"));
+
+            return cacheRequest.bodyToMono(String.class)
+                .flatMap(bodyString -> {
+                    try {
+                        JsonNode rootNode = objectMapper.readTree(bodyString);
+                        JsonNode emailNode = rootNode.path("email");
+
+                        if (!emailNode.isMissingNode() && !emailNode.isNull()) {
+                        String email = emailNode.asText();
+                        exchange.getAttributes().put("USER_EMAIL", email);
+
+                        if (this.tryAccess(email, rule)) {
+                        return chain.filter(exchange.mutate().request(serverHttpRequest).build());
                         }
-                    });
-        });
+                        return errorHandler.writeError(exchange,
+                                new IllegalArgumentException("Too many requests for email: " + email),
+                                HttpStatus.TOO_MANY_REQUESTS
+                        );
+                    }
+
+                    return errorHandler.writeError(exchange,
+                            new IllegalArgumentException("Email not found in request body"),
+                            HttpStatus.BAD_REQUEST);
+                    } catch (Exception e) {
+                        log.error("Error reading body JSON: {}", e.getMessage());
+                        return Mono.error(new IllegalArgumentException("Invalid JSON body"));
+                    }
+                });
+            });
     }
 
     public static class Config {}

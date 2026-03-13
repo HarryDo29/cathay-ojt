@@ -47,6 +47,7 @@ public class AuthenticationGatewayFilterFactory extends
             log.info("\uD83D\uDD10 Authenticating request for path: {}", path);
             EndpointsEntity endpoint = endpointRegisterService.getEndpoint(path, method.toString()).getEntity();
             if (endpoint.isPublic()) {
+                log.info("\uD83D\uDD10 Skipping authentication for public endpoint: {}", path);
                 ServerHttpRequest req = exchange.getRequest()
                         .mutate()
                         .header("X-Internal-API-Key", internalApiKey)  // ← Thêm key cho public endpoints
