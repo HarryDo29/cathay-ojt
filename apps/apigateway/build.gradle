@@ -44,6 +44,8 @@ dependencies {
 	implementation("com.github.ben-manes.caffeine:guava:3.2.3")
 	implementation("com.github.ben-manes.caffeine:jcache:3.2.3")
 	//
+//	implementation "io.github.resilience4j:resilience4j-all:2.2.0"
+	//
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	//

@@ -3,9 +3,12 @@ package com.cathay.apigateway.filter;
 import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
+import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.TokenBucketRule;
 import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
+import com.cathay.apigateway.model.ManualTokenBucket;
 import com.cathay.apigateway.util.RequestUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import io.github.bucket4j.Bandwidth;
@@ -32,25 +35,26 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
 
     private final RateLimitService rateLimitService;
     private final ErrorHandler errorHandler;
-    private final Cache<String, Bucket> ipRateLimitCache;
+    private final Cache<String, ManualTokenBucket> ipRateLimitCache;
+    private final CacheUtil cacheUtil;
 
-    private Bucket createNewBucket(TokenBucketRule rule) {
-        Bandwidth limit = Bandwidth.builder()
-                .capacity(rule.getBurst_capacity()) // set capacity
-                .refillIntervally(
-                        rule.getReplenish_rate(), // set replenish rate
-                        Duration.ofMinutes(rule.getTtl()) // set ttl
-                )// sau ttl thì nạp lại replenish_rate token vào bucket
-                .build();
-        return Bucket.builder()
-                .addLimit(limit)
-                .build();
-    }
-
-    public boolean tryAccess(String key, TokenBucketRule rule) {
-        Bucket bucket = ipRateLimitCache.get(key, k -> createNewBucket(rule));
-        return bucket.tryConsume(1);
-    }
+//    private Bucket createNewBucket(TokenBucketRule rule) {
+//        Bandwidth limit = Bandwidth.builder()
+//                .capacity(rule.getBurst_capacity()) // set capacity
+//                .refillIntervally(
+//                        rule.getReplenish_rate(), // set replenish rate
+//                        Duration.ofMinutes(rule.getTtl()) // set ttl
+//                )// sau ttl thì nạp lại replenish_rate token vào bucket
+//                .build();
+//        return Bucket.builder()
+//                .addLimit(limit)
+//                .build();
+//    }
+//
+//    public boolean tryAccess(String key, TokenBucketRule rule) {
+//        Bucket bucket = ipRateLimitCache.get(key, k -> createNewBucket(rule));
+//        return bucket.tryConsume(1);
+//    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -68,8 +72,9 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
             log.warn("No IP-based rate limit configuration found, allowing request");
             return chain.filter(exchange);
         }
-
-        if (this.tryAccess(ip, rule)){
+        String key = this.buildCacheKey(ip);
+        if (cacheUtil.checkIpRateLimit(key, rule)){
+            cacheUtil.logRateLimitDetail("IP", key, ipRateLimitCache);
             log.info("IP {} allowed by rate limit rule", ip);
             return chain.filter(exchange);
         }
@@ -86,6 +91,10 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
                 .findFirst()
                 .orElse(null);
          return rate == null ? null : TokenBucketRule.fromJson(rate.getRule());
+    }
+
+    private String buildCacheKey(String ip) {
+        return "ipratelimit:" + ip;
     }
 
     @Override

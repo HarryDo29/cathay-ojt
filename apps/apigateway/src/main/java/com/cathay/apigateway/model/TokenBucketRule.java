@@ -5,9 +5,9 @@ import lombok.Data;
 
 @Data
 public class TokenBucketRule {
-    private Integer replenish_rate;
-    private Integer burst_capacity;
-    private Integer ttl;
+    private long burst_capacity;
+    private long replenish_rate;
+    private long ttl;
 
     public TokenBucketRule() {}
 

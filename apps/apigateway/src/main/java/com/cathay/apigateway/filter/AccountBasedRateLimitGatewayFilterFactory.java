@@ -1,11 +1,11 @@
 package com.cathay.apigateway.filter;
 
 import com.cathay.apigateway.model.SlideWindowRule;
-import com.cathay.apigateway.model.SlidingWindowState;
+import com.cathay.apigateway.model.ManualSlidingWindow;
 import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -24,25 +23,28 @@ public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
 
     private final RateLimitService rateLimitService;
-    private final Cache<String, SlidingWindowState> accountRateLimitCache;
+    private final CacheUtil cacheUtil;
+    private final Cache<String, ManualSlidingWindow> accountRateLimitCache;
     private final ErrorHandler errorHandler;
 
     public AccountBasedRateLimitGatewayFilterFactory(RateLimitService rateLimitService,
-                                                     Cache<String, SlidingWindowState> accountRateLimitCache,
+                                                     CacheUtil cacheUtil,
+                                                     Cache<String, ManualSlidingWindow> accountRateLimitCache,
                                                      ErrorHandler errorHandler) {
         super(Config.class);
         this.rateLimitService = rateLimitService;
+        this.cacheUtil = cacheUtil;
         this.accountRateLimitCache = accountRateLimitCache;
         this.errorHandler = errorHandler;
     }
 
     public boolean tryAccess(String accountId, String uri, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(accountId, uri, rule);
-        SlidingWindowState state = accountRateLimitCache.get(cacheKey, k -> new SlidingWindowState(
-                rule.getLimit(),
-                Duration.ofSeconds(rule.getWindow())
-        ));
-        return state.tryConsume();
+        if (this.cacheUtil.checkAccountRateLimitCache(cacheKey, rule)){
+            cacheUtil.logRateLimitDetail("ACCOUNT", cacheKey, accountRateLimitCache);
+            return true;
+        }
+        return false;
     }
 
     private static String buildCacheKey(String accountId, String uri, SlideWindowRule rule) {
@@ -79,7 +81,7 @@ public class AccountBasedRateLimitGatewayFilterFactory
                 return chain.filter(exchange);
             }
 
-            if (tryAccess(accountId, uri, rule)) {
+            if (this.tryAccess(accountId, uri, rule)) {
                 log.debug("Account {} allowed by sliding window for {} {}", accountId, method, uri);
                 return chain.filter(exchange);
             }

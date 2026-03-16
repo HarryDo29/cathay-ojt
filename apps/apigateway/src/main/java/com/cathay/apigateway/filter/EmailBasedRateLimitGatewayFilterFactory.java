@@ -5,9 +5,10 @@ import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.model.SlideWindowRule;
-import com.cathay.apigateway.model.SlidingWindowState;
+import com.cathay.apigateway.model.ManualSlidingWindow;
 import com.cathay.apigateway.service.EndpointRegisterService;
 import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,18 +37,21 @@ public class EmailBasedRateLimitGatewayFilterFactory
     private final EndpointRegisterService endpointRegisterService;
     private final RateLimitService rateLimitService;
     private final ObjectMapper objectMapper;
-    private final Cache<String, SlidingWindowState> emailRateLimitCache;
+    private final CacheUtil cacheUtil;
+    private final Cache<String, ManualSlidingWindow> emailRateLimitCache;
     private final ErrorHandler errorHandler;
 
     public EmailBasedRateLimitGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
                                                    RateLimitService rateLimitService,
                                                    ObjectMapper objectMapper,
-                                                   Cache<String, SlidingWindowState> emailRateLimitCache,
+                                                   CacheUtil cacheUtil,
+                                                   Cache<String, ManualSlidingWindow> emailRateLimitCache,
                                                    ErrorHandler errorHandler) {
         super(Config.class);
         this.endpointRegisterService = endpointRegisterService;
         this.rateLimitService = rateLimitService;
         this.objectMapper = objectMapper;
+        this.cacheUtil = cacheUtil;
         this.emailRateLimitCache = emailRateLimitCache;
         this.errorHandler = errorHandler;
     }
@@ -57,11 +61,11 @@ public class EmailBasedRateLimitGatewayFilterFactory
 
     public boolean tryAccess(String email, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(email, rule);
-        SlidingWindowState state = emailRateLimitCache.get(cacheKey, k -> new SlidingWindowState(
-                rule.getLimit(),
-                Duration.ofSeconds(rule.getWindow())
-        ));
-        return state.tryConsume();
+        if (this.cacheUtil.checkAccountRateLimitCache(cacheKey, rule)){
+            cacheUtil.logRateLimitDetail("EMAIL", cacheKey, emailRateLimitCache);
+            return true;
+        }
+        return false;
     }
 
     private static String buildCacheKey(String accountId, SlideWindowRule rule) {
@@ -83,7 +87,7 @@ public class EmailBasedRateLimitGatewayFilterFactory
             }
 
             EndpointsEntity endpoint = endpointRegisterService.getEndpoint(uri, method).getEntity();
-            if (endpoint.isPublic() && !(uri.matches(rule.getPath_regex())
+            if (!endpoint.isPublic() && !(uri.matches(rule.getPath_regex())
                     && rule.getMethods().contains(method))) {
                 log.info("Skipping email-based rate limit for public endpoint URI: {}", uri);
                 return chain.filter(exchange);
@@ -110,6 +114,7 @@ public class EmailBasedRateLimitGatewayFilterFactory
                                            GatewayFilterChain chain,
                                            SlideWindowRule rule) {
         return ServerWebExchangeUtils.cacheRequestBody(exchange, serverHttpRequest -> {
+            log.info("Applying email-based rate limit for URI: {}", exchange.getRequest().getURI());
             ServerRequest cacheRequest = ServerRequest.create(
                 exchange.mutate().request(serverHttpRequest).build(),
                 HandlerStrategies.withDefaults().messageReaders()
@@ -121,22 +126,25 @@ public class EmailBasedRateLimitGatewayFilterFactory
                         JsonNode rootNode = objectMapper.readTree(bodyString);
                         JsonNode emailNode = rootNode.path("email");
 
+                        String email = "";
                         if (!emailNode.isMissingNode() && !emailNode.isNull()) {
-                        String email = emailNode.asText();
-                        exchange.getAttributes().put("USER_EMAIL", email);
+                            log.info("Email found in request body: {}", email);
+                            email = emailNode.asText();
+                            exchange.getAttributes().put("USER_EMAIL", email);
 
-                        if (this.tryAccess(email, rule)) {
-                        return chain.filter(exchange.mutate().request(serverHttpRequest).build());
+                            if (this.tryAccess(email, rule)) {
+                                log.info("Email {} passed rate limit check, allowing request to proceed", email);
+                                return chain.filter(exchange.mutate().request(serverHttpRequest).build());
+                            }
+
+                            return errorHandler.writeError(exchange,
+                                    new IllegalArgumentException("Too many requests for email: " + email),
+                                    HttpStatus.TOO_MANY_REQUESTS
+                            );
                         }
                         return errorHandler.writeError(exchange,
-                                new IllegalArgumentException("Too many requests for email: " + email),
-                                HttpStatus.TOO_MANY_REQUESTS
-                        );
-                    }
-
-                    return errorHandler.writeError(exchange,
-                            new IllegalArgumentException("Email not found in request body"),
-                            HttpStatus.BAD_REQUEST);
+                                new IllegalArgumentException("Email not found in request body"),
+                                HttpStatus.BAD_REQUEST);
                     } catch (Exception e) {
                         log.error("Error reading body JSON: {}", e.getMessage());
                         return Mono.error(new IllegalArgumentException("Invalid JSON body"));

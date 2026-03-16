@@ -76,6 +76,7 @@ public class AuthenticationGatewayFilterFactory extends
             // Extract and verify JWT token
             Claims claim;
             try {
+                log.info("extract jwt");
                 claim = jwtUtil.extractToken(authHeader.getFirst().substring(7));
             } catch (Exception e) {
                 return errorHandler.writeError(exchange, e, HttpStatus.UNAUTHORIZED);
