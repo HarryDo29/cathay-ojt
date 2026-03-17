@@ -1,5 +1,6 @@
 package com.cathay.apigateway.filter;
 
+import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.ManualSlidingWindow;
 import com.cathay.apigateway.service.RateLimitService;
@@ -21,6 +22,7 @@ import java.util.List;
 @Component
 public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
+    private static final String ACCOUNT_RATE_LIMIT_PATTERN = "Rate_Limit:ACCOUNT:%s:%s:%s";
 
     private final RateLimitService rateLimitService;
     private final CacheUtil cacheUtil;
@@ -41,7 +43,7 @@ public class AccountBasedRateLimitGatewayFilterFactory
     public boolean tryAccess(String accountId, String uri, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(accountId, uri, rule);
         if (this.cacheUtil.checkAccountRateLimitCache(cacheKey, rule)){
-            cacheUtil.logRateLimitDetail("ACCOUNT", cacheKey, accountRateLimitCache);
+            cacheUtil.logRateLimitDetail(KeyType.ACCOUNT_ID, cacheKey, accountRateLimitCache);
             return true;
         }
         return false;
@@ -52,7 +54,8 @@ public class AccountBasedRateLimitGatewayFilterFactory
                 .filter(r -> r.contains("service"))
                 .findFirst()
                 .orElse("unknown_service");
-        return accountId + "|" + servicePart + "|" + String.join(",", rule.getMethods());
+        return String.format(ACCOUNT_RATE_LIMIT_PATTERN,
+                accountId, servicePart, String.join(",", rule.getMethods()));
     }
 
     @Override
@@ -60,33 +63,35 @@ public class AccountBasedRateLimitGatewayFilterFactory
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             log.info("AccountBasedRateLimitGatewayFilterFactory - request URI: {}", request.getURI());
+
             String isPublicEndpoint = request.getHeaders().getFirst("Public-Endpoint");
-            if ("true".equalsIgnoreCase(isPublicEndpoint)) {
+            if (Boolean.parseBoolean(isPublicEndpoint)) {
                 log.info("Public endpoint detected, skipping account-based rate limit.");
                 return chain.filter(exchange);
             }
-            log.info("Before validate account");
+
             String accountId = request.getHeaders().getFirst("X-User-Id");
             if (accountId == null || accountId.isEmpty()) {
-                log.warn("Missing X-User-Id header for request: {}", request.getURI());
+                log.error("Missing X-User-Id header for request: {}", request.getURI());
                 return errorHandler.writeError(exchange,
                         new IllegalArgumentException("Missing X-User-Id header"), HttpStatus.FORBIDDEN);
             }
-            log.info("Before find account-based rate limit config");
+
             String uri = request.getURI().getPath();
             String method = request.getMethod().name();
             SlideWindowRule rule = findAccountRateLimitConfig(uri, method);
-            log.info("Before find account-based rate limit rule");
             if (rule == null) {
-                log.debug("No account-based rate limit configuration for {} {}, allowing request", method, uri);
+                log.error("No account-based rate limit configuration for {} {}, allowing request", method, uri);
                 return chain.filter(exchange);
             }
-            log.info("Before call tryAccess");
+
             if (this.tryAccess(accountId, uri, rule)) {
-                log.debug("Account {} allowed by sliding window for {} {}", accountId, method, uri);
+                log.trace("Account {} allowed by sliding window for {} {}", accountId, method, uri);
                 return chain.filter(exchange);
             }
-            log.warn("Account {} blocked by sliding window (limit {} per {}s) for {} {}", accountId, rule.getLimit(), rule.getWindow(), method, uri);
+
+            log.warn("Account {} blocked by sliding window (limit {} per {}s) for {} {}",
+                                        accountId, rule.getLimit(), rule.getWindow(), method, uri);
             return errorHandler.writeError(exchange,
                     new RuntimeException("Too many requests"), HttpStatus.TOO_MANY_REQUESTS);
         };

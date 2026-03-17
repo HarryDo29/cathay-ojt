@@ -1,5 +1,6 @@
 package com.cathay.apigateway.util;
 
+import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.model.ManualSlidingWindow;
 import com.cathay.apigateway.model.ManualTokenBucket;
 import com.cathay.apigateway.model.SlideWindowRule;
@@ -48,7 +49,7 @@ public class CacheUtil {
         return bucket.tryConsume();
     }
 
-    public <T> void logRateLimitDetail(String type, String key, Cache<String, T> cache) {
+    public <T> void logRateLimitDetail(KeyType type, String key, Cache<String, T> cache) {
         T value = cache.getIfPresent(key);
 
         if (value == null) {
@@ -68,7 +69,7 @@ public class CacheUtil {
         }
 
         // In thêm toàn bộ object trong cache (dựa trên toString())
-        detail.append(String.format("\nRaw cache value: %s", String.valueOf(value)));
+        detail.append(String.format("\nRaw cache value: %s", value));
         detail.append("\n------------------------------");
         System.out.println(detail);
     }

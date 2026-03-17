@@ -52,8 +52,8 @@ public class ManualSlidingWindow {
 
     public void logging(StringBuilder builder) {
         SlidingWindowState state = stateRef.get();
-        builder.append(String.format("\nlimit     : %d", limit));
-        builder.append(String.format("\nwindow    : %s", window));
-        builder.append(String.format("\ntimestamps: %s", state.timestamps()));
+        builder.append(String.format("\nlimit          : %d", limit));
+        builder.append(String.format("\nwindow         : %s", window));
+        builder.append(String.format("\ntimestamps size: %s", state.timestamps.size()));
     }
 }

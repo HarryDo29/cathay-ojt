@@ -27,12 +27,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-
 @Slf4j
 @Component
 public class EmailBasedRateLimitGatewayFilterFactory
         extends AbstractGatewayFilterFactory<EmailBasedRateLimitGatewayFilterFactory.Config> {
+    private static final String EMAIL_RATE_LIMIT_PATTERN = "Rate_Limit:EMAIL:%s";
 
     private final EndpointRegisterService endpointRegisterService;
     private final RateLimitService rateLimitService;
@@ -60,16 +59,16 @@ public class EmailBasedRateLimitGatewayFilterFactory
     private String internalApiKey;
 
     public boolean tryAccess(String email, SlideWindowRule rule) {
-        String cacheKey = buildCacheKey(email, rule);
-        if (this.cacheUtil.checkAccountRateLimitCache(cacheKey, rule)){
-            cacheUtil.logRateLimitDetail("EMAIL", cacheKey, emailRateLimitCache);
+        String cacheKey = buildCacheKey(email);
+        if (this.cacheUtil.checkEmailRateLimit(cacheKey, rule)){
+            cacheUtil.logRateLimitDetail(KeyType.EMAIL, cacheKey, emailRateLimitCache);
             return true;
         }
         return false;
     }
 
-    private static String buildCacheKey(String accountId, SlideWindowRule rule) {
-        return accountId + "|" + "auth-service" + "|" + String.join(",", rule.getMethods());
+    private static String buildCacheKey(String email) {
+        return String.format(EMAIL_RATE_LIMIT_PATTERN, email);
     }
 
 
@@ -80,15 +79,16 @@ public class EmailBasedRateLimitGatewayFilterFactory
             String uri = request.getURI().getPath();
             String method = request.getMethod().toString();
 
-            SlideWindowRule rule = this.getEmailRateLimitEntity(); // get email-based rate limit rule from cached list
+            // get email-based rate limit rule from cached list
+            SlideWindowRule rule = this.getEmailRateLimitEntity();
             if (rule == null) {
-                log.info("No email-based rate limit rule found, skipping rate limit for URI: {}", uri);
+                log.error("No email-based rate limit rule found, skipping rate limit for URI: {}", uri);
                 return chain.filter(exchange);
             }
 
             EndpointsEntity endpoint = endpointRegisterService.getEndpoint(uri, method).getEntity();
-            if (!endpoint.isPublic() && !(uri.matches(rule.getPath_regex())
-                    && rule.getMethods().contains(method))) {
+            boolean isAuthEndpoint = uri.matches(rule.getPath_regex()) && rule.getMethods().contains(method);
+            if (!endpoint.isPublic() && !isAuthEndpoint) {
                 log.info("Skipping email-based rate limit for public endpoint URI: {}", uri);
                 return chain.filter(exchange);
             }
@@ -104,6 +104,7 @@ public class EmailBasedRateLimitGatewayFilterFactory
                         && rate.getType() == RateLimitType.SLIDING_WINDOW)
                 .findFirst()
                 .orElse(null);
+
         if (rate_limit == null) {
             return null;
         }

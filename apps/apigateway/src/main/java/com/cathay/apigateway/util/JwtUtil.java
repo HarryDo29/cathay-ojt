@@ -52,7 +52,6 @@ public class JwtUtil {
     }
 
     private Key getSignKey(String secret) {
-        // Accept plain text secret so it matches typical NestJS @nestjs/jwt usage
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 

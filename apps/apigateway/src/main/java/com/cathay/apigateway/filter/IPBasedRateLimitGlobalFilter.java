@@ -32,6 +32,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
     private static final int ORDER = -100;
+    private static final String IP_RATE_LIMIT_PATTERN = "Rate_Limit:IP:%s";
 
     private final RateLimitService rateLimitService;
     private final ErrorHandler errorHandler;
@@ -74,7 +75,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
         }
         String key = this.buildCacheKey(ip);
         if (cacheUtil.checkIpRateLimit(key, rule)){
-            cacheUtil.logRateLimitDetail("IP", key, ipRateLimitCache);
+            cacheUtil.logRateLimitDetail(KeyType.IP, key, ipRateLimitCache);
             log.info("IP {} allowed by rate limit rule", ip);
             return chain.filter(exchange);
         }
@@ -94,7 +95,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
     }
 
     private String buildCacheKey(String ip) {
-        return "ipratelimit:" + ip;
+        return String.format(IP_RATE_LIMIT_PATTERN, ip);
     }
 
     @Override
