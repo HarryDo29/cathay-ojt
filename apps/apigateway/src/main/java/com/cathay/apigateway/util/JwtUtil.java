@@ -53,7 +53,7 @@ public class JwtUtil {
 
     private Key getSignKey(String secret) {
         // Accept plain text secret so it matches typical NestJS @nestjs/jwt usage
-        return Keys.hmacShaKeyFor("changememccesssecretinproduction456789cathaylifeojt".getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public <T> T extractClaim(Claims claim, Function<Claims, T> claimsResolver) {

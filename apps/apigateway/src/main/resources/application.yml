@@ -589,7 +589,7 @@ app:
           key_type: ACCOUNT_ID
           rule: '{
             "methods": ["POST", "PUT", "PATCH", "DELETE"],
-            "path_regex": "*",
+            "path_regex": ".*",
             "window": "60",
             "limit": "20",
             "priority": "2"
@@ -601,7 +601,7 @@ app:
           key_type: ACCOUNT_ID
           rule: '{
             "methods": ["GET", "HEAD"],
-            "path_regex": "*",
+            "path_regex": ".*",
             "window": "60",
             "limit": "100",
             "priority": "3"

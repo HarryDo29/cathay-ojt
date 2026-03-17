@@ -59,28 +59,29 @@ public class AccountBasedRateLimitGatewayFilterFactory
     public GatewayFilter apply(AccountBasedRateLimitGatewayFilterFactory.Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-
+            log.info("AccountBasedRateLimitGatewayFilterFactory - request URI: {}", request.getURI());
             String isPublicEndpoint = request.getHeaders().getFirst("Public-Endpoint");
             if ("true".equalsIgnoreCase(isPublicEndpoint)) {
                 log.info("Public endpoint detected, skipping account-based rate limit.");
                 return chain.filter(exchange);
             }
-
+            log.info("Before validate account");
             String accountId = request.getHeaders().getFirst("X-User-Id");
             if (accountId == null || accountId.isEmpty()) {
                 log.warn("Missing X-User-Id header for request: {}", request.getURI());
                 return errorHandler.writeError(exchange,
                         new IllegalArgumentException("Missing X-User-Id header"), HttpStatus.FORBIDDEN);
             }
-
+            log.info("Before find account-based rate limit config");
             String uri = request.getURI().getPath();
             String method = request.getMethod().name();
             SlideWindowRule rule = findAccountRateLimitConfig(uri, method);
+            log.info("Before find account-based rate limit rule");
             if (rule == null) {
                 log.debug("No account-based rate limit configuration for {} {}, allowing request", method, uri);
                 return chain.filter(exchange);
             }
-
+            log.info("Before call tryAccess");
             if (this.tryAccess(accountId, uri, rule)) {
                 log.debug("Account {} allowed by sliding window for {} {}", accountId, method, uri);
                 return chain.filter(exchange);
@@ -95,7 +96,7 @@ public class AccountBasedRateLimitGatewayFilterFactory
         return rateLimitService.getSlideWindowRuleList()
                 .stream()
                 .filter(rule ->
-                    uri.matches(rule.getPath_regex()) && List.of(rule.getMethods()).contains(method)
+                    uri.matches(rule.getPath_regex()) && rule.getMethods().contains(method)
                 )
                 .findFirst()
                 .orElse(null);
