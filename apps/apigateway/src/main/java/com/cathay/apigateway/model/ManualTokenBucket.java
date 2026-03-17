@@ -7,10 +7,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ManualTokenBucket {
+    private final AtomicReference<BucketState> stateRef;
+
     private final long capacity; //token
     private final long replenishRate; // token/s
-
-    private final AtomicReference<BucketState> stateRef;
 
     private record BucketState(long availableTokens, long lastRefillNanos) {
     }
