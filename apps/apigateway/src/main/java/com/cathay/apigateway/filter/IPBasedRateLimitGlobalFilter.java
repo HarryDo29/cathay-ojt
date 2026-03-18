@@ -92,12 +92,12 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
         }
         String rateLimitKey = this.buildCacheKey(ip);
         if (cacheUtil.checkIpRateLimitCache(rateLimitKey, rule)){
+            cacheUtil.logRateLimitDetail(KeyType.IP, rateLimitKey, ipRateLimitCache);
             log.info("IP {} allowed by rate limit rule", ip);
             return true;
         }
 
         // Rate limit hit
-        cacheUtil.logRateLimitDetail(KeyType.IP, rateLimitKey, ipRateLimitCache);
         log.warn("IP {} blocked by rate limit rule", ip);
         String abuseKey = this.buildAbuseKey(ip);
         boolean abuseCounterOk = cacheUtil.checkAbuseCounterCache(abuseKey);

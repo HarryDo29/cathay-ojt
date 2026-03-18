@@ -56,14 +56,14 @@ public class CacheUtil {
 
     public boolean checkEmailRateLimitCache(String key, SlideWindowRule rule) {
         ManualSlidingWindow bucket = this.emailRateLimitCache.get(key,
-                k -> new ManualSlidingWindow(rule.getWindow(), Duration.ofMillis(rule.getLimit()))
+                k -> new ManualSlidingWindow(rule.getLimit(), Duration.ofSeconds(rule.getWindow()))
         );
         return bucket.tryConsume();
     }
 
     public boolean checkAccountRateLimitCache(String key, SlideWindowRule rule) {
         ManualSlidingWindow bucket = this.accountRateLimitCache.get(key,
-                k -> new ManualSlidingWindow(rule.getWindow(), Duration.ofMillis(rule.getLimit()))
+                k -> new ManualSlidingWindow(rule.getLimit(), Duration.ofSeconds(rule.getWindow()))
         );
         return bucket.tryConsume();
     }
