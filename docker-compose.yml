@@ -15,9 +15,28 @@ services:
       timeout: 3s
       retries: 5
 
+  apigateway-postgres:
+    image: postgres:17
+    container_name: apigateway-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: apigateway_service
+      POSTGRES_PASSWORD: generated_password_for_fun
+    volumes:
+      - apigateway_pg_data:/var/lib/postgresql/data
+      - ./sql-script.sql:/docker-entrypoint-initdb.d/sql-script.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apigateway_service -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
   apigateway-server:
-    build:
-      context: ./apps/apigateway
+    # build:
+    #   context: ./apps/apigateway
     image: apigateway:v1
     container_name: apigateway-server
     ports:
@@ -85,7 +104,7 @@ services:
         condition: service_healthy
 
 volumes:
-  # apigateway_pg_data:
+  apigateway_pg_data:
   apigateway_redis_data:
   identity_pg_data:
   order_pg_data:

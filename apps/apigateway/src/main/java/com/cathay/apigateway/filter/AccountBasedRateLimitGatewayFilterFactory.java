@@ -1,108 +1,110 @@
 package com.cathay.apigateway.filter;
 
-import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
+import com.cathay.apigateway.model.SlideWindowRule;
+import com.cathay.apigateway.model.ManualSlidingWindow;
 import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
-import java.time.Instant;
-import java.util.Collections;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 @Component
 public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
-    private static final String DEFAULT_TOKEN_COST = "1";
+    private static final String ACCOUNT_RATE_LIMIT_PATTERN = "Rate_Limit:ACCOUNT:%s:%s:%s";
 
-    private final RedisScript<Long> accountRateLimitLuaScript;
-    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final RateLimitService rateLimitService;
+    private final CacheUtil cacheUtil;
+    private final Cache<String, ManualSlidingWindow> accountRateLimitCache;
     private final ErrorHandler errorHandler;
 
-    public AccountBasedRateLimitGatewayFilterFactory(RedisScript<Long> accountRateLimitLuaScript,
-                                                      ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
-                                                      RateLimitService rateLimitService,
-                                                      ErrorHandler errorHandler) {
+    public AccountBasedRateLimitGatewayFilterFactory(RateLimitService rateLimitService,
+                                                     CacheUtil cacheUtil,
+                                                     Cache<String, ManualSlidingWindow> accountRateLimitCache,
+                                                     ErrorHandler errorHandler) {
         super(Config.class);
-        this.accountRateLimitLuaScript = accountRateLimitLuaScript;
-        this.reactiveRedisTemplate = reactiveRedisTemplate;
         this.rateLimitService = rateLimitService;
+        this.cacheUtil = cacheUtil;
+        this.accountRateLimitCache = accountRateLimitCache;
         this.errorHandler = errorHandler;
+    }
+
+    public boolean tryAccess(String accountId, String uri, SlideWindowRule rule) {
+        String cacheKey = buildCacheKey(accountId, uri, rule);
+        if (this.cacheUtil.checkAccountRateLimitCache(cacheKey, rule)){
+            cacheUtil.logRateLimitDetail(KeyType.ACCOUNT_ID, cacheKey, accountRateLimitCache);
+            return true;
+        }
+        return false;
+    }
+
+    private static String buildCacheKey(String accountId, String uri, SlideWindowRule rule) {
+        String servicePart = Arrays.stream(uri.split("/"))
+                .filter(r -> r.contains("service"))
+                .findFirst()
+                .orElse("unknown_service");
+        return String.format(ACCOUNT_RATE_LIMIT_PATTERN,
+                accountId, servicePart, String.join(",", rule.getMethods()));
     }
 
     @Override
     public GatewayFilter apply(AccountBasedRateLimitGatewayFilterFactory.Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
+            log.info("AccountBasedRateLimitGatewayFilterFactory - request URI: {}", request.getURI());
+
             String isPublicEndpoint = request.getHeaders().getFirst("Public-Endpoint");
-            if ("true".equalsIgnoreCase(isPublicEndpoint)) {
+            if (Boolean.parseBoolean(isPublicEndpoint)) {
                 log.info("Public endpoint detected, skipping account-based rate limit.");
                 return chain.filter(exchange);
             }
-            String accountId = request.getHeaders().getFirst("X-User-Id");
 
+            String accountId = request.getHeaders().getFirst("X-User-Id");
             if (accountId == null || accountId.isEmpty()) {
-                log.warn("Missing X-User-Id header for request: {}", request.getURI());
+                log.error("Missing X-User-Id header for request: {}", request.getURI());
                 return errorHandler.writeError(exchange,
                         new IllegalArgumentException("Missing X-User-Id header"), HttpStatus.FORBIDDEN);
             }
 
-            RateLimitEntity rateLimitEntity = findAccountRateLimitConfig();
-            if  (rateLimitEntity == null) {
-                log.warn("No account-based rate limit configuration found, allowing request");
+            String uri = request.getURI().getPath();
+            String method = request.getMethod().name();
+            SlideWindowRule rule = findAccountRateLimitConfig(uri, method);
+            if (rule == null) {
+                log.error("No account-based rate limit configuration for {} {}, allowing request", method, uri);
                 return chain.filter(exchange);
             }
 
-            return executeRateLimit(accountId, rateLimitEntity)
-                    .flatMap(allowed -> {
-                        if (allowed) {
-                            return chain.filter(exchange);
-                        } else {
-                            log.warn("Account {} has exceeded rate limit", accountId);
-                            return errorHandler.writeError(exchange,
-                                    new IllegalStateException("Rate limit exceeded"), HttpStatus.TOO_MANY_REQUESTS);
-                        }
-                    })
-                    .onErrorResume(ex -> {
-                        log.error("Rate limit check failed (fail-open): {}", ex.getMessage());
-                        return chain.filter(exchange);
-                    });
+            if (this.tryAccess(accountId, uri, rule)) {
+                log.trace("Account {} allowed by sliding window for {} {}", accountId, method, uri);
+                return chain.filter(exchange);
+            }
+
+            log.warn("Account {} blocked by sliding window (limit {} per {}s) for {} {}",
+                                        accountId, rule.getLimit(), rule.getWindow(), method, uri);
+            return errorHandler.writeError(exchange,
+                    new RuntimeException("Too many requests"), HttpStatus.TOO_MANY_REQUESTS);
         };
     }
 
-    // Get rate limit rule for IP-based key type
-    private RateLimitEntity findAccountRateLimitConfig() {
-        return rateLimitService.getRateLimitList()
+    private SlideWindowRule findAccountRateLimitConfig(String uri, String method) {
+        return rateLimitService.getSlideWindowRuleList()
                 .stream()
-                .filter(r -> r.getKeyType() == KeyType.ACCOUNT_ID
-                        && Boolean.TRUE.equals(r.getEnabled()))
+                .filter(rule ->
+                    uri.matches(rule.getPath_regex()) && rule.getMethods().contains(method)
+                )
                 .findFirst()
                 .orElse(null);
-    }
-
-    // Execute the Lua script for rate limiting and return whether the request is allowed
-    private Mono<Boolean> executeRateLimit(String accountId, RateLimitEntity config) {
-        List<String> keys = Collections.singletonList(accountId);
-        List<String> args = List.of(
-                config.getBurstCapacity().toString(),
-                config.getReplenishRate().toString(),
-                String.valueOf(Instant.now().toEpochMilli()),
-                DEFAULT_TOKEN_COST
-        );
-
-        return reactiveRedisTemplate.execute(accountRateLimitLuaScript, keys, args)
-                .next()
-                .map(result -> result == 1L);
     }
 
     public static class Config {}

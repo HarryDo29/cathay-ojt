@@ -3,6 +3,7 @@ package com.cathay.apigateway.repository;
 import com.cathay.apigateway.data.config.RateLimitConfig;
 import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
+import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.interfaces.IRateLimitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,11 +23,10 @@ public class YmlRateLimitRepository implements IRateLimitRepository {
                 .map(rule -> {
                     RateLimitEntity entity = new RateLimitEntity();
                     entity.setId(rule.getId());
+                    entity.setType(RateLimitType.valueOf(rule.getType().toUpperCase()));
                     entity.setKeyType(KeyType.valueOf(rule.getKey_type().toUpperCase()));
-                    entity.setReplenishRate(rule.getReplenish_rate());
-                    entity.setBurstCapacity(rule.getBurst_capacity());
-                    entity.setTtl(rule.getTtl());
-                    entity.setEnabled("Y".equalsIgnoreCase(rule.getEnabled()));
+                    entity.setRule(rule.getRule());
+                    entity.setEnabled(Boolean.parseBoolean(rule.getEnabled()));
                     return entity;
                 });
     }

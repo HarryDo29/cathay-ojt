@@ -120,6 +120,16 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
                     HttpStatus.BAD_REQUEST);
         }
 
+        // 1.4 Validate request id header (add if missing)
+        List<String> request_id = req.getHeaders()
+                .get("X-Request-ID");
+        if (request_id == null || request_id.isEmpty()) {
+            log.info("Adding missing X-Request-ID header");
+            ServerHttpRequest mutatedRequest = req.mutate()
+                    .header("X-Request-ID", UUID.randomUUID().toString())
+                    .build();
+        }
+
         // ============================================
         // PHASE 2: ENDPOINT-SPECIFIC HEADER VALIDATION
         // ============================================

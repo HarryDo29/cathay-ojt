@@ -41,6 +41,7 @@ public class AuthorizationGatewayFilterFactory extends
                             .getEntity();
             // endpoint is public, skip authorization
             if (endpoint != null && endpoint.isPublic()) {
+                log.info("\uD83D\uDD12 Skipping authorization for public endpoint: {}", path);
                 return chain.filter(exchange);
             }
             // get user ROLE from req header
