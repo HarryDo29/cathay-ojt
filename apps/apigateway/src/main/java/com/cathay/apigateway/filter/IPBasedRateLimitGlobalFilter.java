@@ -32,7 +32,9 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
     private static final int ORDER = -100;
+    private static final String BLACK_LIST_PATTERN = "Black_List:IP:%s";
     private static final String IP_RATE_LIMIT_PATTERN = "Rate_Limit:IP:%s";
+    private static final String ABUSE_COUNTER_PATTERN = "Abuse_Counter:IP:%s";
 
     private final RateLimitService rateLimitService;
     private final ErrorHandler errorHandler;
@@ -73,15 +75,36 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
             log.warn("No IP-based rate limit configuration found, allowing request");
             return chain.filter(exchange);
         }
-        String key = this.buildCacheKey(ip);
-        if (cacheUtil.checkIpRateLimit(key, rule)){
-            cacheUtil.logRateLimitDetail(KeyType.IP, key, ipRateLimitCache);
-            log.info("IP {} allowed by rate limit rule", ip);
+
+        if (this.tryAccess(ip, rule)){
             return chain.filter(exchange);
         }
         log.warn("IP {} blocked by rate limit rule", ip);
         return errorHandler.writeError(exchange,
                 new NotFoundException("Rate limit exceeded"), HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    private boolean tryAccess(String ip, TokenBucketRule rule){
+        String blackListKey = String.format(BLACK_LIST_PATTERN, ip);
+        if (cacheUtil.checkBlackListCache(blackListKey)){
+            log.warn("IP {} blocked by black list", ip);
+            return false;
+        }
+        String rateLimitKey = this.buildCacheKey(ip);
+        if (cacheUtil.checkIpRateLimitCache(rateLimitKey, rule)){
+            log.info("IP {} allowed by rate limit rule", ip);
+            return true;
+        }
+
+        // Rate limit hit
+        cacheUtil.logRateLimitDetail(KeyType.IP, rateLimitKey, ipRateLimitCache);
+        log.warn("IP {} blocked by rate limit rule", ip);
+        String abuseKey = this.buildAbuseKey(ip);
+        boolean abuseCounterOk = cacheUtil.checkAbuseCounterCache(abuseKey);
+        if (!abuseCounterOk) {
+            cacheUtil.addToBlackListCache(blackListKey);
+        }
+        return false;
     }
 
     // Get rate limit rule for IP-based key type
@@ -92,6 +115,10 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
                 .findFirst()
                 .orElse(null);
          return rate == null ? null : TokenBucketRule.fromJson(rate.getRule());
+    }
+
+    private String buildAbuseKey(String ip){
+        return String.format(ABUSE_COUNTER_PATTERN, ip);
     }
 
     private String buildCacheKey(String ip) {

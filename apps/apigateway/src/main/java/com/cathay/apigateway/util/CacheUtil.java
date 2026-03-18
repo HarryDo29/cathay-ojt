@@ -1,12 +1,8 @@
 package com.cathay.apigateway.util;
 
 import com.cathay.apigateway.enums.KeyType;
-import com.cathay.apigateway.model.ManualSlidingWindow;
-import com.cathay.apigateway.model.ManualTokenBucket;
-import com.cathay.apigateway.model.SlideWindowRule;
-import com.cathay.apigateway.model.TokenBucketRule;
+import com.cathay.apigateway.model.*;
 import com.github.benmanes.caffeine.cache.Cache;
-import io.github.bucket4j.Bucket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -16,26 +12,49 @@ import java.time.Instant;
 @Slf4j
 @Component
 public class CacheUtil {
+    private final Cache<String, Boolean> blackListCache;
+    private final Cache<String, ManualAbuseCounter> abuseCounterCache;
     private final Cache<String, ManualTokenBucket> ipRateLimitCache;
     private final Cache<String, ManualSlidingWindow> emailRateLimitCache;
     private final Cache<String, ManualSlidingWindow> accountRateLimitCache;
 
-    public CacheUtil(Cache<String, ManualTokenBucket> ipRateLimitCache,
+    public CacheUtil(Cache<String, Boolean> blackListCache,
+                     Cache<String, ManualAbuseCounter> abuseCounterCache,
+                     Cache<String, ManualTokenBucket> ipRateLimitCache,
                      Cache<String, ManualSlidingWindow> emailRateLimitCache,
                      Cache<String, ManualSlidingWindow> accountRateLimitCache) {
+        this.blackListCache = blackListCache;
+        this.abuseCounterCache = abuseCounterCache;
         this.ipRateLimitCache = ipRateLimitCache;
         this.emailRateLimitCache = emailRateLimitCache;
         this.accountRateLimitCache = accountRateLimitCache;
     }
 
-    public boolean checkIpRateLimit(String key, TokenBucketRule rule) {
+    public boolean checkBlackListCache(String key){
+        if (blackListCache.getIfPresent(key) != null){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addToBlackListCache(String key){
+        blackListCache.put(key, true);
+        return true;
+    }
+
+    public boolean checkAbuseCounterCache(String key) {
+        ManualAbuseCounter counter = this.abuseCounterCache.get(key, k -> new ManualAbuseCounter());
+        return counter.tryConsume(key);
+    }
+
+    public boolean checkIpRateLimitCache(String key, TokenBucketRule rule) {
         ManualTokenBucket bucket = this.ipRateLimitCache.get(key,
                 k -> new ManualTokenBucket(rule.getBurst_capacity(), rule.getReplenish_rate())
         );
         return bucket.tryConsume(1L);
     }
 
-    public boolean checkEmailRateLimit(String key, SlideWindowRule rule) {
+    public boolean checkEmailRateLimitCache(String key, SlideWindowRule rule) {
         ManualSlidingWindow bucket = this.emailRateLimitCache.get(key,
                 k -> new ManualSlidingWindow(rule.getWindow(), Duration.ofMillis(rule.getLimit()))
         );

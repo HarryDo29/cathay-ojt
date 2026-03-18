@@ -60,7 +60,7 @@ public class EmailBasedRateLimitGatewayFilterFactory
 
     public boolean tryAccess(String email, SlideWindowRule rule) {
         String cacheKey = buildCacheKey(email);
-        if (this.cacheUtil.checkEmailRateLimit(cacheKey, rule)){
+        if (this.cacheUtil.checkEmailRateLimitCache(cacheKey, rule)){
             cacheUtil.logRateLimitDetail(KeyType.EMAIL, cacheKey, emailRateLimitCache);
             return true;
         }
