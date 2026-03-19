@@ -2,9 +2,7 @@ package com.cathay.apigateway.repository;
 
 import com.cathay.apigateway.data.config.CircuitBreakerConfig;
 import com.cathay.apigateway.entity.CircuitBreakerEntity;
-import com.cathay.apigateway.entity.ServiceEntity;
 import com.cathay.apigateway.interfaces.ICircuitBreakerRuleRepository;
-import com.cathay.apigateway.service.RouteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;

@@ -39,7 +39,7 @@ public class CircuitBreakerService {
                 .doOnNext(circuitBreakers -> {
                     circuitBreakerList = new ArrayList<>(circuitBreakers)
                             .stream()
-                            .filter(CircuitBreakerEntity::getEnabled)
+                            .filter(CircuitBreakerEntity::isEnabled)
                             .toList();
                 })
                 .then();
