@@ -20,6 +20,7 @@ public class ManualSlidingWindow {
         }
         this.limit = limit;
         this.window = window;
+
         this.stateRef = new AtomicReference<>(new SlidingWindowState(new ConcurrentLinkedDeque<>()));
     }
 
