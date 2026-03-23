@@ -30,33 +30,36 @@ public class ErrorHandler {
         
         if (e instanceof CallNotPermittedException) {
             logger.warn("[CircuitBreaker] Circuit OPEN for path: {} - {}", path, e.getMessage());
-            return writeErrorResponse(exchange, path, HttpStatus.SERVICE_UNAVAILABLE,
+            return writeJsonError(exchange, HttpStatus.SERVICE_UNAVAILABLE, path,
                     "Circuit Breaker Open",
                     "Service is temporarily unavailable due to repeated failures. Please try again later.");
         }
         
         if (e instanceof TimeoutException) {
             logger.error("[Gateway] Timeout for path: {}", path);
-            return writeErrorResponse(exchange, path, HttpStatus.GATEWAY_TIMEOUT,
+            return writeJsonError(exchange, HttpStatus.GATEWAY_TIMEOUT, path,
                     "Gateway Timeout",
                     "The service took too long to respond");
         }
         
         if (e instanceof ConnectException) {
             logger.error("[Gateway] Connection failed for path: {}", path);
-            return writeErrorResponse(exchange, path, HttpStatus.SERVICE_UNAVAILABLE,
+            return writeJsonError(exchange, HttpStatus.SERVICE_UNAVAILABLE, path,
                     "Service Unavailable",
                     "Unable to connect to the service");
         }
         
         logger.error("Gateway error: path={}, status={}, message={}", path, httpStatus, e.getMessage(), e);
-        return writeErrorResponse(exchange, path, httpStatus,
+        return writeJsonError(exchange, httpStatus, path,
                 httpStatus.getReasonPhrase(),
                 httpStatus.is5xxServerError() ? "Internal Server Error" : e.getMessage());
     }
 
-    private Mono<Void> writeErrorResponse(ServerWebExchange exchange, String path, 
-                                          HttpStatus httpStatus, String error, String message) {
+    public Mono<Void> writeJsonError(ServerWebExchange exchange,
+                                     HttpStatus httpStatus,
+                                     String path,
+                                     String error,
+                                     String message) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(httpStatus);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
