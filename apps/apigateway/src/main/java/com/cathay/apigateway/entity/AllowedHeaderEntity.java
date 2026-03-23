@@ -1,7 +1,6 @@
 package com.cathay.apigateway.entity;
 
 import lombok.Data;
-
 import java.util.UUID;
 
 @Data

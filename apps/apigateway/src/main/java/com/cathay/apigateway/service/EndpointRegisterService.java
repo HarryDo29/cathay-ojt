@@ -1,4 +1,5 @@
 package com.cathay.apigateway.service;
+
 import com.cathay.apigateway.core.routing.MatchResult;
 import com.cathay.apigateway.core.routing.PathTrie;
 import com.cathay.apigateway.entity.EndpointsEntity;

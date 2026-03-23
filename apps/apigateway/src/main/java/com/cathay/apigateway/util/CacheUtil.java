@@ -5,7 +5,6 @@ import com.cathay.apigateway.model.*;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.time.Instant;
 

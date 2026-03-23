@@ -2,14 +2,11 @@ package com.cathay.apigateway.service;
 
 import com.cathay.apigateway.entity.CircuitBreakerEntity;
 import com.cathay.apigateway.interfaces.ICircuitBreakerRuleRepository;
-import com.cathay.apigateway.repository.YmlCircuitBreakerRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

@@ -2,7 +2,6 @@ package com.cathay.apigateway.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-
 import java.util.Set;
 
 @Data

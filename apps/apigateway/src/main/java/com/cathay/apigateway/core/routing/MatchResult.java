@@ -3,7 +3,6 @@ package com.cathay.apigateway.core.routing;
 import com.cathay.apigateway.entity.EndpointsEntity;
 import com.cathay.apigateway.enums.Status;
 import lombok.Getter;
-
 import java.util.Collections;
 import java.util.Map;
 

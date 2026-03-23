@@ -1,7 +1,6 @@
 package com.cathay.apigateway.model;
 
 import java.time.Instant;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;

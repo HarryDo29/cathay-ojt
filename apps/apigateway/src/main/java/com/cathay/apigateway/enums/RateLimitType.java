@@ -2,7 +2,6 @@ package com.cathay.apigateway.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-
 import java.util.Arrays;
 
 public enum RateLimitType {

@@ -2,7 +2,6 @@ package com.cathay.apigateway.util;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-
 import java.net.InetSocketAddress;
 
 public class RequestUtil {

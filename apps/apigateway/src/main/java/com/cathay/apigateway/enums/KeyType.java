@@ -2,8 +2,6 @@ package com.cathay.apigateway.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import jakarta.validation.constraints.Email;
-
 import java.util.Arrays;
 
 public enum KeyType {
