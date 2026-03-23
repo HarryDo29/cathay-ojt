@@ -27,27 +27,21 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         switch (ex) {
             case CallNotPermittedException callNotPermittedException -> {
                 log.warn("[CircuitBreaker] Circuit OPEN for path: {} - {}", path, ex.getMessage());
-                return errorHandler.writeJsonError(exchange,
-                        HttpStatus.SERVICE_UNAVAILABLE,
-                        path,
-                        "Circuit Breaker Open",
-                        "Service is temporarily unavailable due to repeated failures. Please try again later.");
+                return errorHandler.writeError(exchange,
+                        callNotPermittedException,
+                        HttpStatus.SERVICE_UNAVAILABLE);
             }
             case TimeoutException timeoutException -> {
                 log.error("[Gateway] Timeout for path: {}", path);
-                return errorHandler.writeJsonError(exchange,
-                        HttpStatus.GATEWAY_TIMEOUT,
-                        path,
-                        "Gateway Timeout",
-                        "The service took too long to respond");
+                return errorHandler.writeError(exchange,
+                        timeoutException,
+                        HttpStatus.GATEWAY_TIMEOUT);
             }
             case ConnectException connectException -> {
                 log.error("[Gateway] Connection failed for path: {}", path);
-                return errorHandler.writeJsonError(exchange,
-                        HttpStatus.SERVICE_UNAVAILABLE,
-                        path,
-                        "Service Unavailable",
-                        "Unable to connect to the service");
+                return errorHandler.writeError(exchange,
+                        connectException,
+                        HttpStatus.SERVICE_UNAVAILABLE);
             }
             default -> {
             }

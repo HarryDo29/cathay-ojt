@@ -71,7 +71,8 @@ public class AccountBasedRateLimitGatewayFilterFactory
             if (accountId == null || accountId.isEmpty()) {
                 log.error("Missing X-User-Id header for request: {}", request.getURI());
                 return errorHandler.writeError(exchange,
-                        new IllegalArgumentException("Missing X-User-Id header"), HttpStatus.FORBIDDEN);
+                        new IllegalArgumentException("Missing X-User-Id header"),
+                        HttpStatus.FORBIDDEN);
             }
 
             String uri = request.getURI().getPath();
@@ -90,7 +91,8 @@ public class AccountBasedRateLimitGatewayFilterFactory
             log.warn("Account {} blocked by sliding window (limit {} per {}s) for {} {}",
                                         accountId, rule.getLimit(), rule.getWindow(), method, uri);
             return errorHandler.writeError(exchange,
-                    new RuntimeException("Too many requests"), HttpStatus.TOO_MANY_REQUESTS);
+                    new RuntimeException("Too many requests"),
+                    HttpStatus.TOO_MANY_REQUESTS);
         };
     }
 

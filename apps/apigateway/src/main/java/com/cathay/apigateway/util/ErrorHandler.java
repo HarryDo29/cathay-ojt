@@ -61,6 +61,8 @@ public class ErrorHandler {
                                      String error,
                                      String message) {
         ServerHttpResponse response = exchange.getResponse();
+        logger.error("Gateway error: path={}, status={}, message={}", path, httpStatus, message);
+
         response.setStatusCode(httpStatus);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
