@@ -25,9 +25,9 @@ public class AllowedHeaderService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading CORS allowed headers...");
+        log.info("[Headers] ▶️ Loading CORS allowed headers...");
         loadAllowedHeaders().block();
-        log.info("[Gateway] ✅ CORS headers ready — {} allowed headers active", allowedHeaderList.size());
+        log.info("[Headers] ✅ CORS ready — {} allowed headers active", allowedHeaderList.size());
     }
 
     public Mono<Void> loadAllowedHeaders() {

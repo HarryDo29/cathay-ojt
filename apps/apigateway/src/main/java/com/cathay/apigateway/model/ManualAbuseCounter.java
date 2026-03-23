@@ -15,7 +15,8 @@ public class ManualAbuseCounter {
     private final AtomicReference<AbuseCounterState> stateRef;
 
     public ManualAbuseCounter() {
-        this.stateRef = new AtomicReference<>(new AbuseCounterState(0,
+        this.stateRef = new AtomicReference<>(new AbuseCounterState(
+                0,
                 new java.util.concurrent.ConcurrentLinkedQueue<>())
         );
     }
@@ -28,17 +29,15 @@ public class ManualAbuseCounter {
             Queue<Instant> nTimestamps = new ConcurrentLinkedQueue<>(state.timestamps);
 
             if (state.counter() >= MAX_COUNTER) {
-                return false; // đã đạt giới hạn vi phạm
+                return false;// đã đạt giới hạn vi phạm
             }
 
-            nTimestamps.offer(now); // thêm timestamp mới
+            nTimestamps.offer(now);// thêm timestamp mới
             AbuseCounterState newState = new AbuseCounterState(nCounter + 1, nTimestamps);
 
             if (stateRef.compareAndSet(state, newState)) {
-                return true; // tiêu thụ thành công
+                return true;// tiêu thụ thành công
             }
         }
     }
-
-
 }

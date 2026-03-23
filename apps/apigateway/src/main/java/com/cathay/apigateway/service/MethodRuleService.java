@@ -24,9 +24,9 @@ public class MethodRuleService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading HTTP method rules...");
+        log.info("[Method] ▶️ Loading HTTP method rules...");
         loadMethodRules().block();
-        log.info("[Gateway] ✅ Method rules ready — {} rules configured", methodRuleSet.size());
+        log.info("[Method] ✅ Method rules ready — {} rules configured", methodRuleSet.size());
     }
 
     public Mono<Void> loadMethodRules() {

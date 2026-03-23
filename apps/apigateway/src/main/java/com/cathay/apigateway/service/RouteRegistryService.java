@@ -23,9 +23,9 @@ public class RouteRegistryService {
     
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading service route definitions...");
+        log.info("[Service] ▶️ Loading service route definitions...");
         loadServices().block();
-        log.info("[Gateway] ✅ Route registry ready — {} service routes cached", serviceCache.size());
+        log.info("[Service] ✅ Route registry ready — {} service routes cached", serviceCache.size());
     }
 
     public Mono<Void> loadServices(){

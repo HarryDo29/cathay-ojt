@@ -31,9 +31,9 @@ public class ServiceFilterService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading service-filter mappings...");
+        log.info("[ServiceFilter] ▶️ Loading service-filter mappings...");
         loadServiceFilters().block();
-        log.info("[Gateway] ✅ Service-filter mappings ready — {} services configured", serviceFiltersMap.size());
+        log.info("[ServiceFilter] ✅ Service-filter mappings ready — {} services configured", serviceFiltersMap.size());
     }
 
     private Mono<Void> loadServiceFilters() {

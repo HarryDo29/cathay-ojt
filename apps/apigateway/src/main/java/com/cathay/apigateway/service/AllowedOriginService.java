@@ -25,9 +25,9 @@ public class AllowedOriginService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading CORS allowed origins...");
+        log.info("[Origin] ▶️ Loading CORS allowed origins...");
         loadAllowedOrigins().block();
-        log.info("[Gateway] ✅ CORS origins ready — {} allowed origins active", allowedOriginList.size());
+        log.info("[Orgin] ✅ CORS origins ready — {} allowed origins active", allowedOriginList.size());
     }
 
     public Mono<Void> loadAllowedOrigins() {

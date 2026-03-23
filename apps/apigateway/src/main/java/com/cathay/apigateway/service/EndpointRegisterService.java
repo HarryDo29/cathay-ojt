@@ -21,7 +21,7 @@ public class EndpointRegisterService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Registering API endpoints into path trie...");
+        log.info("[Endpoint] ▶️ Registering API endpoints into path trie...");
         loadEndpoints().block();
     }
 

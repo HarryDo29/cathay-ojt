@@ -33,9 +33,9 @@ public class RateLimitService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading rate limit configurations...");
+        log.info("[RateLimit] ▶️ Loading rate limit configurations...");
         loadRateLimits().block();
-        log.info("[Gateway] ✅ Rate limiter ready — {} rate limit rules configured", rateLimitList.size());
+        log.info("[RateLimit] ✅ Rate limiter ready — {} rate limit rules configured", rateLimitList.size());
     }
 
     public Mono<Void> loadRateLimits() {
