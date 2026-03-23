@@ -28,9 +28,9 @@ public class CircuitBreakerService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading Circuit Breaker Rules...");
+        log.info("[CircuitHeader] ▶️ Loading Circuit Breaker Rules...");
         loadAllCircuitBreakers().block();
-        log.info("[Gateway] ✅ CircuitBreaker Rules ready — {} allowed headers active", circuitBreakerList.size());
+        log.info("[CircuitHeader] ✅ CircuitBreaker Rules ready — {} allowed headers active", circuitBreakerList.size());
     }
 
     public Mono<Void> loadAllCircuitBreakers() {
@@ -43,5 +43,13 @@ public class CircuitBreakerService {
                             .toList();
                 })
                 .then();
+    }
+
+    public CircuitBreakerEntity getCircuitBreakerById(UUID service_id) {
+        return circuitBreakerList.stream()
+                .filter(cb -> cb.getService_id() != null)
+                .filter(cb -> cb.getService_id().equals(service_id))
+                .findFirst()
+                .orElse(circuitBreakerList.getFirst());
     }
 }

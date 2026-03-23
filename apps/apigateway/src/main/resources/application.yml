@@ -613,16 +613,16 @@ app:
   circuitbreaker:
     rules:
       - id: 1c9e4d2b-1b2e-4eac-9a62-0b6e8a8ea010
-        service_id: fc222ee8-06b5-4c35-ad6a-46c079a8cf8e
+        service_id:
         enabled: true
-        failure_rate_threshold: 35
+        failure_rate_threshold: 50
         slow_call_rate_threshold: 50
         slow_call_duration_threshold: 1s
         permitted_number_of_calls_in_half_open_state: 5
         sliding_window_type: COUNT_BASED
-        sliding_window_size: 50
-        minimum_number_of_calls: 25
-        wait_duration_in_open_state: 20s
+        sliding_window_size: 4
+        minimum_number_of_calls: 4
+        wait_duration_in_open_state: 5s
         name: defaultCircuitBreaker
 
       - id: 2f5a6c7d-3e8a-4d21-9b10-7a1c2d3e4f50
