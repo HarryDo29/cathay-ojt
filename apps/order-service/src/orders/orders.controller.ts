@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -19,6 +21,31 @@ import { Order } from 'src/entities/order.entity.js';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+  @Get('test')
+  @HttpCode(HttpStatus.OK)
+  async gatewayTest(@Request() req: ExpressRequest) {
+    const ms = 2000;
+    if (ms > 0) {
+      await new Promise<void>((resolve) => setTimeout(resolve, ms));
+    }
+    return {
+      ok: true,
+      service: 'order-service',
+      path: '/orders/test',
+      method: req.method,
+      timestamp: new Date().toISOString(),
+      fromGateway: {
+        'x-user-id': req.headers['x-user-id'] ?? null,
+        'x-user-email': req.headers['x-user-email'] ?? null,
+        'x-user-role': req.headers['x-user-role'] ?? null,
+        'x-internal-api-key': req.headers['x-internal-api-key']
+          ? '(set)'
+          : null,
+        'public-endpoint': req.headers['public-endpoint'] ?? null,
+      },
+    };
+  }
 
   @Post()
   async create(

@@ -18,6 +18,31 @@ import { User } from '../common/entities/user.entity.js';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('test')
+  async gatewayTest(@Request() req: ExpressRequest) {
+    const ms = 500;
+    if (ms > 0) {
+      await new Promise<void>((resolve) => setTimeout(resolve, ms));
+    }
+
+    return {
+      ok: true,
+      service: 'identify-service',
+      method: req.method,
+      path: '/users/test',
+      delayedMs: ms,
+      timestamp: new Date().toISOString(),
+      fromGateway: {
+        'x-user-id': req.headers['x-user-id'] ?? null,
+        'x-user-role': req.headers['x-user-role'] ?? null,
+        'x-internal-api-key': req.headers['x-internal-api-key']
+          ? '(set)'
+          : null,
+        'public-endpoint': req.headers['public-endpoint'] ?? null,
+      },
+    };
+  }
+
   @Get('me')
   async getProfile(@Request() req: ExpressRequest): Promise<User | null> {
     const user_id = req.headers['x-user-id'] as string;
