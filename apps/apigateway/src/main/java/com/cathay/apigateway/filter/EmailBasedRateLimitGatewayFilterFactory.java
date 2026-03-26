@@ -88,12 +88,11 @@ public class EmailBasedRateLimitGatewayFilterFactory
 
             EndpointsEntity endpoint = endpointRegisterService.getEndpoint(uri, method).getEntity();
             boolean isAuthEndpoint = uri.matches(rule.getPath_regex()) && rule.getMethods().contains(method);
-            if (!endpoint.isPublic() && !isAuthEndpoint) {
-                log.info("Skipping email-based rate limit for public endpoint URI: {}", uri);
-                return chain.filter(exchange);
+            if (endpoint.isPublic() && isAuthEndpoint) {
+                return this.applyEmailRateLimit(exchange, chain, rule);
             }
-
-            return this.applyEmailRateLimit(exchange, chain, rule);
+            log.info("Skipping email-based rate limit for public endpoint URI: {}", uri);
+            return chain.filter(exchange);
         };
     }
 
@@ -114,6 +113,21 @@ public class EmailBasedRateLimitGatewayFilterFactory
     private Mono<Void> applyEmailRateLimit(ServerWebExchange exchange,
                                            GatewayFilterChain chain,
                                            SlideWindowRule rule) {
+        // GET / auth/test: email trong query (?email=...) — không có body JSON
+        String emailFromQuery = exchange.getRequest().getQueryParams().getFirst("email");
+        if (emailFromQuery != null && !emailFromQuery.isBlank()) {
+            String email = emailFromQuery.trim();
+            log.info("Email from query string for rate limit: {}", email);
+            exchange.getAttributes().put("USER_EMAIL", email);
+            if (this.tryAccess(email, rule)) {
+                log.info("Email {} passed rate limit check, allowing request to proceed", email);
+                return chain.filter(exchange);
+            }
+            return errorHandler.writeError(exchange,
+                    new IllegalArgumentException("Too many requests for email: " + email),
+                    HttpStatus.TOO_MANY_REQUESTS);
+        }
+
         return ServerWebExchangeUtils.cacheRequestBody(exchange, serverHttpRequest -> {
             log.info("Applying email-based rate limit for URI: {}", exchange.getRequest().getURI());
             ServerRequest cacheRequest = ServerRequest.create(
@@ -122,8 +136,14 @@ public class EmailBasedRateLimitGatewayFilterFactory
             );
 
             return cacheRequest.bodyToMono(String.class)
+                .defaultIfEmpty("")
                 .flatMap(bodyString -> {
                     try {
+                        if (bodyString == null || bodyString.isBlank()) {
+                            return errorHandler.writeError(exchange,
+                                    new IllegalArgumentException("Email required: use JSON body field \"email\" or query ?email="),
+                                    HttpStatus.BAD_REQUEST);
+                        }
                         JsonNode rootNode = objectMapper.readTree(bodyString);
                         JsonNode emailNode = rootNode.path("email");
 
@@ -148,7 +168,9 @@ public class EmailBasedRateLimitGatewayFilterFactory
                                 HttpStatus.BAD_REQUEST);
                     } catch (Exception e) {
                         log.error("Error reading body JSON: {}", e.getMessage());
-                        return Mono.error(new IllegalArgumentException("Invalid JSON body"));
+                        return errorHandler.writeError(exchange,
+                                new IllegalArgumentException("Invalid JSON body: " + e.getMessage()),
+                                HttpStatus.BAD_REQUEST);
                     }
                 });
             });

@@ -23,6 +23,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
         String path = exchange.getRequest().getURI().getPath();
+        log.error("Error: {}", ex.getMessage());
 
         switch (ex) {
             case CallNotPermittedException callNotPermittedException -> {

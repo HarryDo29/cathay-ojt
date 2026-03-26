@@ -15,28 +15,28 @@ services:
       timeout: 3s
       retries: 5
 
-  apigateway-postgres:
-    image: postgres:17
-    container_name: apigateway-postgres
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: apigateway_service
-      POSTGRES_PASSWORD: generated_password_for_fun
-    volumes:
-      - apigateway_pg_data:/var/lib/postgresql/data
-      - ./sql-script.sql:/docker-entrypoint-initdb.d/sql-script.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apigateway_service -d postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  # apigateway-postgres:
+  #   image: postgres:17
+  #   container_name: apigateway-postgres
+  #   ports:
+  #     - '5432:5432'
+  #   environment:
+  #     POSTGRES_DB: postgres
+  #     POSTGRES_USER: apigateway_service
+  #     POSTGRES_PASSWORD: generated_password_for_fun
+  #   volumes:
+  #     - apigateway_pg_data:/var/lib/postgresql/data
+  #     - ./sql-script.sql:/docker-entrypoint-initdb.d/sql-script.sql:ro
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U apigateway_service -d postgres"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
 
 
   apigateway-server:
-    # build:
-    #   context: ./apps/apigateway
+    build:
+      context: ./apps/apigateway
     image: apigateway:v1
     container_name: apigateway-server
     ports:
@@ -44,6 +44,8 @@ services:
     depends_on:
       apigateway-redis:
         condition: service_healthy
+    environment:
+      TZ: Asia/Ho_Chi_Minh
 
   # ── identity ────────────────────────────────────────
   identity-postgres:
@@ -63,16 +65,18 @@ services:
       timeout: 5s
       retries: 5
 
-  identity-service:
+  identify-service:
     build:
       context: ./apps/identify-service
     image: identify-service:v1
-    container_name: identity-service
+    container_name: identify-service
     ports:
       - "8081:8081"
     depends_on:
       identity-postgres:
         condition: service_healthy
+    environment:
+      TZ: Asia/Ho_Chi_Minh
 
   # ── order ───────────────────────────────────────────
   order-postgres:
@@ -102,6 +106,8 @@ services:
     depends_on:
       order-postgres:
         condition: service_healthy
+    environment:
+      TZ: Asia/Ho_Chi_Minh
 
 volumes:
   apigateway_pg_data:

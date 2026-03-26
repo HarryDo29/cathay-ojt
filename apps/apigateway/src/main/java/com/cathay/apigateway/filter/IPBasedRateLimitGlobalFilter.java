@@ -53,7 +53,6 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
 //        Bucket bucket = ipRateLimitCache.get(key, k -> createNewBucket(rule));
 //        return bucket.tryConsume(1);
 //    }
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();

@@ -9,9 +9,9 @@ public class RequestUtil {
         HttpHeaders headers = request.getHeaders();
 
         String ip = headers.getFirst("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = headers.getFirst("Proxy-Client-IP");
-        }
+//        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+//            ip = headers.getFirst("Proxy-Client-IP");
+//        }
 
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             InetSocketAddress remoteAddress = request.getRemoteAddress();
