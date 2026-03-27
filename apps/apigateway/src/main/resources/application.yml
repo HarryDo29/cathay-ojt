@@ -83,14 +83,14 @@ app:
     services:
         - id: fc222ee8-06b5-4c35-ad6a-46c079a8cf8e
           name: identity-service
-          url: http://identify-service:8081 #http://localhost:8081
+          url: http://localhost:8081 #http://identify-service:8081
           path: /api/v1/identify-service/**
           strip_prefix: 3
           enabled: true
 
         - id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
           name: order-service
-          url: http://order-service:8082
+            url: http://localhost:8082 #http://order-service:8082
           path: /api/v1/order-service/**
           strip_prefix: 3
           enabled: true
@@ -268,6 +268,22 @@ app:
           service_id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
           method: GET
           path: /api/v1/order-service/orders/test
+          isPublic: true
+          enabled: true
+
+        # GET /orders/test — Gateway smoke test (public)
+        - id: cd67b6d1-f1da-4a49-851f-b620f650ed2f
+          service_id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
+          method: GET
+          path: /api/v1/order-service/orders/test1
+          isPublic: true
+          enabled: true
+
+        # GET /orders/test — Gateway smoke test (public)
+        - id: 475e3f61-1e50-47af-b613-67ae6b34348a
+          service_id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
+          method: GET
+          path: /api/v1/order-service/orders/test2
           isPublic: true
           enabled: true
 
@@ -642,33 +658,33 @@ app:
   #============================================
   #TABLE: circuit-breaker-rules
   #============================================
-#  circuitbreaker:
-#    rules:
-#      - id: 1c9e4d2b-1b2e-4eac-9a62-0b6e8a8ea010
-#        service_id:
-#        enabled: true
-#        failure_rate_threshold: 50
-#        slow_call_rate_threshold: 50
-#        slow_call_duration_threshold: 2s
-#        permitted_number_of_calls_in_half_open_state: 2
-#        sliding_window_type: COUNT_BASED
-#        sliding_window_size: 150
-#        minimum_number_of_calls: 75
-#        wait_duration_in_open_state: 20s
-#        name: defaultCircuitBreaker
-#
-#      - id: 2f5a6c7d-3e8a-4d21-9b10-7a1c2d3e4f50
-#        service_id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
-#        enabled: true
-#        failure_rate_threshold: 50
-#        slow_call_rate_threshold: 50
-#        slow_call_duration_threshold: 2s
-#        permitted_number_of_calls_in_half_open_state: 5
-#        sliding_window_type: COUNT_BASED
-#        sliding_window_size: 50
-#        minimum_number_of_calls: 20
-#        wait_duration_in_open_state: 30s
-#        name: orderServiceCircuitBreaker
+  circuitbreaker:
+    rules:
+      - id: 1c9e4d2b-1b2e-4eac-9a62-0b6e8a8ea010
+        service_id:
+        enabled: true
+        failure_rate_threshold: 35
+        slow_call_rate_threshold: 50
+        slow_call_duration_threshold: 10s
+        permitted_number_of_calls_in_half_open_state: 2
+        sliding_window_type: COUNT_BASED
+        sliding_window_size:  50
+        minimum_number_of_calls: 25
+        wait_duration_in_open_state: 20s
+        name: defaultCircuitBreaker
+
+      - id: 2f5a6c7d-3e8a-4d21-9b10-7a1c2d3e4f50
+        service_id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
+        enabled: true
+        failure_rate_threshold: 50
+        slow_call_rate_threshold: 50
+        slow_call_duration_threshold: 8s
+        permitted_number_of_calls_in_half_open_state: 5
+        sliding_window_type: COUNT_BASED
+        sliding_window_size: 50
+        minimum_number_of_calls: 20
+        wait_duration_in_open_state: 30s
+        name: orderServiceCircuitBreaker
 
 access-token:
   secret: ${access-token.secret}

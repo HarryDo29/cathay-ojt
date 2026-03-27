@@ -1,9 +1,11 @@
 package com.cathay.apigateway.config;
 
 //import com.cathay.apigateway.entity.CircuitBreakerEntity;
+import com.cathay.apigateway.entity.CircuitBreakerEntity;
 import com.cathay.apigateway.entity.FilterEntity;
 import com.cathay.apigateway.entity.ServiceEntity;
 //import com.cathay.apigateway.service.CircuitBreakerService;
+import com.cathay.apigateway.service.CircuitBreakerService;
 import com.cathay.apigateway.service.RouteRegistryService;
 import com.cathay.apigateway.service.ServiceFilterService;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -23,12 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 public class GatewayConfig {
     private final RouteRegistryService routeService;
     private final ServiceFilterService serviceFilterService;
-//    private final CircuitBreakerService circuitBreakerService;
+    private final CircuitBreakerService circuitBreakerService;
 
     public GatewayConfig(RouteRegistryService routeService,
-                         ServiceFilterService serviceFilterService) {
+                         ServiceFilterService serviceFilterService,
+                         CircuitBreakerService circuitBreakerService) {
         this.routeService = routeService;
         this.serviceFilterService = serviceFilterService;
+        this.circuitBreakerService = circuitBreakerService;
     }
 
     @Bean
@@ -64,12 +68,12 @@ public class GatewayConfig {
                    }
 
                    // Add CircuitBreaker filter (always apply, uses service name for config lookup)
-//                   CircuitBreakerEntity cb = circuitBreakerService.getCircuitBreakerById(serviceEntity.getId());
-//                   FilterDefinition circuitBreakerFilter = new FilterDefinition();
-//                   circuitBreakerFilter.setName("CircuitBreaker");
-//                   circuitBreakerFilter.addArg("name", "defaultCircuitBreaker");
-//                   circuitBreakerFilter.addArg("fallbackUri", "forward:/fallback");
-//                   filters.add(circuitBreakerFilter);
+                   CircuitBreakerEntity cb = circuitBreakerService.getCircuitBreakerById(serviceEntity.getId());
+                   FilterDefinition circuitBreakerFilter = new FilterDefinition();
+                   circuitBreakerFilter.setName("CircuitBreaker");
+                   circuitBreakerFilter.addArg("name", "defaultCircuitBreaker");
+                   circuitBreakerFilter.addArg("fallbackUri", "forward:/fallback");
+                   filters.add(circuitBreakerFilter);
 
                    // Add StripPrefix filter if configured
                    if (serviceEntity.getStrip_prefix() > 0) {
