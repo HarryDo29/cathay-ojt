@@ -7,7 +7,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -31,9 +30,9 @@ public class ServiceFilterService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading service-filter mappings...");
+        log.info("[ServiceFilter] ▶️ Loading service-filter mappings...");
         loadServiceFilters().block();
-        log.info("[Gateway] ✅ Service-filter mappings ready — {} services configured", serviceFiltersMap.size());
+        log.info("[ServiceFilter] ✅ Service-filter mappings ready — {} services configured", serviceFiltersMap.size());
     }
 
     private Mono<Void> loadServiceFilters() {

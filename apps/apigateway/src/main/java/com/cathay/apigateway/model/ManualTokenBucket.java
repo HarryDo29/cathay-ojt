@@ -1,8 +1,5 @@
 package com.cathay.apigateway.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,13 +9,12 @@ public class ManualTokenBucket {
     private final long capacity; //token
     private final long replenishRate; // token/s
 
-    private record BucketState(long availableTokens, long lastRefillNanos) {
-    }
+    private record BucketState(long availableTokens, long lastRefillNanos) {}
 
     public ManualTokenBucket(long capacity, long replenishRate) {
         this.capacity = capacity;
         this.replenishRate = replenishRate;
-        // khởi tạo xô vs đầy thẻ
+
         this.stateRef = new AtomicReference<>(new BucketState(capacity, System.nanoTime()));
     }
 

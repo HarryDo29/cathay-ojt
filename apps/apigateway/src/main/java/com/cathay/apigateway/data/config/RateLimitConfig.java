@@ -1,10 +1,7 @@
 package com.cathay.apigateway.data.config;
 
-import com.cathay.apigateway.enums.KeyType;
-import com.cathay.apigateway.enums.RateLimitType;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.List;
 import java.util.UUID;
 

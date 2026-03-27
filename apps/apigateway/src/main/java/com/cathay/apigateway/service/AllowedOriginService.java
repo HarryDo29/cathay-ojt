@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +24,9 @@ public class AllowedOriginService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading CORS allowed origins...");
+        log.info("[Origin] ▶️ Loading CORS allowed origins...");
         loadAllowedOrigins().block();
-        log.info("[Gateway] ✅ CORS origins ready — {} allowed origins active", allowedOriginList.size());
+        log.info("[Orgin] ✅ CORS origins ready — {} allowed origins active", allowedOriginList.size());
     }
 
     public Mono<Void> loadAllowedOrigins() {

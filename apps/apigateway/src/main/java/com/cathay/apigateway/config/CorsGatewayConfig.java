@@ -9,10 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
 import java.util.Objects;
-
 
 @Configuration
 public class CorsGatewayConfig {

@@ -1,4 +1,5 @@
 package com.cathay.apigateway.service;
+
 import com.cathay.apigateway.core.routing.MatchResult;
 import com.cathay.apigateway.core.routing.PathTrie;
 import com.cathay.apigateway.entity.EndpointsEntity;
@@ -21,7 +22,7 @@ public class EndpointRegisterService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Registering API endpoints into path trie...");
+        log.info("[Endpoint] ▶️ Registering API endpoints into path trie...");
         loadEndpoints().block();
     }
 

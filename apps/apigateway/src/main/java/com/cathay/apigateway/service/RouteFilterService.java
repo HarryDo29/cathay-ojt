@@ -23,9 +23,9 @@ public class RouteFilterService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading gateway route filters...");
+        log.info("[RouteFilter] ▶️ Loading gateway route filters...");
         loadFilters().block();
-        log.info("[Gateway] ✅ Route filters ready — {} filters cached", filters.size());
+        log.info("[RouteFilter] ✅ Route filters ready — {} filters cached", filters.size());
     }
 
     private Mono<Void> loadFilters() {

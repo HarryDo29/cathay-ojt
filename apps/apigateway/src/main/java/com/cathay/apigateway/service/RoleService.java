@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -27,9 +26,9 @@ public class RoleService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading role definitions...");
+        log.info("[Role] ▶️ Loading role definitions...");
         this.loadRoles().block();
-        log.info("[Gateway] ✅ Role hierarchy ready — {} active roles loaded", roleLevelMap.size());
+        log.info("[Role] ✅ Role hierarchy ready — {} active roles loaded", roleLevelMap.size());
     }
 
     public Mono<Void> loadRoles() {

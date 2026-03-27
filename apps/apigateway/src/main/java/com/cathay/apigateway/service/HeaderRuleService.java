@@ -24,9 +24,9 @@ public class HeaderRuleService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading header validation rules...");
+        log.info("[Header] ▶️ Loading header validation rules...");
         loadAllowedHeaders().block();
-        log.info("[Gateway] ✅ Header rules ready — {} rules cached", headers.size());
+        log.info("[Header] ✅ Header rules ready — {} rules cached", headers.size());
     }
 
     public Mono<Void> loadAllowedHeaders(){

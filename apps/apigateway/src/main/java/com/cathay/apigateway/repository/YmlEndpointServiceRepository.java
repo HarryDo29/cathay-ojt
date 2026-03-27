@@ -6,7 +6,6 @@ import com.cathay.apigateway.interfaces.IEndpointServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
-
 import java.util.List;
 
 @Repository

@@ -1,4 +1,5 @@
 package com.cathay.apigateway.repository;
+
 import com.cathay.apigateway.data.config.RoleConfig;
 import com.cathay.apigateway.entity.RoleEntity;
 import com.cathay.apigateway.interfaces.IRoleRuleRepository;

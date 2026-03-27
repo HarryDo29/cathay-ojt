@@ -26,9 +26,9 @@ public class EndpointHeaderRuleService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading endpoint-header rule mappings...");
+        log.info("[EndpointHeaderRule] ▶️ Loading endpoint-header rule mappings...");
         loadEndpointHeaderRules().block();
-        log.info("[Gateway] ✅ Endpoint header rules ready — {} endpoint mappings loaded", endpointHeaderRule.size());
+        log.info("[EndpointHeaderRule] ✅ Endpoint header rules ready — {} endpoint mappings loaded", endpointHeaderRule.size());
     }
 
     public Mono<Void> loadEndpointHeaderRules() {

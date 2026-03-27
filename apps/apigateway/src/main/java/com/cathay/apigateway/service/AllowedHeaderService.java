@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +24,9 @@ public class AllowedHeaderService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading CORS allowed headers...");
+        log.info("[Headers] ▶️ Loading CORS allowed headers...");
         loadAllowedHeaders().block();
-        log.info("[Gateway] ✅ CORS headers ready — {} allowed headers active", allowedHeaderList.size());
+        log.info("[Headers] ✅ CORS ready — {} allowed headers active", allowedHeaderList.size());
     }
 
     public Mono<Void> loadAllowedHeaders() {

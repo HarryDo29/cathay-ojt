@@ -3,7 +3,6 @@ package com.cathay.apigateway.filter;
 import com.cathay.apigateway.entity.RateLimitEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
-import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.TokenBucketRule;
 import com.cathay.apigateway.service.RateLimitService;
 import com.cathay.apigateway.util.CacheUtil;
@@ -11,8 +10,6 @@ import com.cathay.apigateway.util.ErrorHandler;
 import com.cathay.apigateway.model.ManualTokenBucket;
 import com.cathay.apigateway.util.RequestUtil;
 import com.github.benmanes.caffeine.cache.Cache;
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -24,8 +21,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.time.Duration;
 
 @Slf4j
 @Component
@@ -58,7 +53,6 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
 //        Bucket bucket = ipRateLimitCache.get(key, k -> createNewBucket(rule));
 //        return bucket.tryConsume(1);
 //    }
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();

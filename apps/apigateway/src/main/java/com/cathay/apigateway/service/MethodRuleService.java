@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.util.Set;
 
 @Slf4j
@@ -24,9 +23,9 @@ public class MethodRuleService {
 
     @PostConstruct
     public void init() {
-        log.info("[Gateway] ▶️ Loading HTTP method rules...");
+        log.info("[Method] ▶️ Loading HTTP method rules...");
         loadMethodRules().block();
-        log.info("[Gateway] ✅ Method rules ready — {} rules configured", methodRuleSet.size());
+        log.info("[Method] ✅ Method rules ready — {} rules configured", methodRuleSet.size());
     }
 
     public Mono<Void> loadMethodRules() {
