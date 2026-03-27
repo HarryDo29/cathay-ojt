@@ -83,14 +83,14 @@ app:
     services:
         - id: fc222ee8-06b5-4c35-ad6a-46c079a8cf8e
           name: identity-service
-          url: http://localhost:8081 #http://identify-service:8081
+          url: http://identify-service:8081
           path: /api/v1/identify-service/**
           strip_prefix: 3
           enabled: true
 
         - id: 1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd
           name: order-service
-            url: http://localhost:8082 #http://order-service:8082
+          url: http://order-service:8082
           path: /api/v1/order-service/**
           strip_prefix: 3
           enabled: true
