@@ -1,15 +1,6 @@
 spring:
   application:
     name: ApiGateway project for Cathay Life Vietnam
-#  management:
-#    endpoints:
-#      web:
-#        exposure:
-#          include: "metrics,health,info"
-#    metrics:
-#      export:
-#        prometheus:
-#          enabled: true
   data:
     redis:
       host: apigateway-redis
