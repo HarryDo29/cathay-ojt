@@ -16,11 +16,13 @@ cd cathay
 
 ## Bước 2: Tạo file cấu hình
 
-Tạo 3 file sau bằng cách copy nội dung bên dưới vào file mới (hoặc dùng lệnh `cp` từ file `.example` nếu có).
+> **Lưu ý:** Mỗi lệnh dưới đây tạo file **và** ghi sẵn nội dung vào luôn. Chỉ cần copy-paste từng khối vào terminal, không cần làm thêm bước nào.
 
 ### 2.1. `apps/apigateway/secret.properties`
 
-```
+```bash
+# mở terminal đứng ở folder cathay
+cat > ./apps/apigateway/secret.properties << 'EOF'
 # secret properties
 
 access-token.secret = change-me-access-secret-in-production
@@ -42,11 +44,14 @@ redis_password: mysecret
 
 # Internal API Key - phải trùng với INTERNAL_GATEWAY_SECRET trong .env của identify-service và order-service
 internal.api.key = cathay-internal-secret-key-2026-secure-communication
+EOF
 ```
 
 ### 2.2. `apps/identify-service/.env`
 
-```
+```bash
+# mở terminal đứng ở folder cathay
+cat > ./apps/identify-service/.env << 'EOF'
 DB_HOST=identity-postgres
 DB_PORT=5432
 DB_USERNAME=identity_service
@@ -62,11 +67,14 @@ JWT_REFRESH_EXPIRATION=30d
 PORT=8081
 HOST=0.0.0.0
 INTERNAL_GATEWAY_SECRET=cathay-internal-secret-key-2026-secure-communication
+EOF
 ```
 
 ### 2.3. `apps/order-service/.env`
 
-```
+```bash
+# mở terminal đứng ở folder cathay
+cat > ./apps/order-service/.env << 'EOF'
 DB_HOST=order-postgres
 DB_PORT=5432
 DB_USERNAME=order_service
@@ -76,6 +84,7 @@ DB_NAME=postgres
 PORT=8082
 NODE_ENV=development
 INTERNAL_GATEWAY_SECRET=cathay-internal-secret-key-2026-secure-communication
+EOF
 ```
 
 > **Lưu ý:** `INTERNAL_GATEWAY_SECRET` trong `.env` phải trùng với `internal.api.key` trong `secret.properties`.
