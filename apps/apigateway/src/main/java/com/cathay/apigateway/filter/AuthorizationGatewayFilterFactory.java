@@ -47,22 +47,28 @@ public class AuthorizationGatewayFilterFactory extends
             // get user ROLE from req header
             String role = exchange.getRequest().getHeaders().getFirst("X-User-Role");
             if (role == null || role.isEmpty()) {
-                return errorHandler.writeError(exchange,
-                        new AccessDeniedException("Missing user role"),
-                        HttpStatus.UNAUTHORIZED);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.UNAUTHORIZED,
+                        path,
+                        "Unauthorized",
+                        "Missing user role");
             }
             // resolve endpoint's roles and check with user ROLE
             RoleEntity roleEntity = roleService.getRoleLevel(role);
             if (roleEntity == null) {
-                return errorHandler.writeError(exchange,
-                        new AccessDeniedException("Invalid user role"),
-                        HttpStatus.FORBIDDEN);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.FORBIDDEN,
+                        path,
+                        "Forbidden",
+                        "Invalid user role");
             }
             // check permission of user with endpoint's level
             if (roleEntity.getLevel() < endpoint.getMinRoleLevel()) {
-                return errorHandler.writeError(exchange,
-                        new AccessDeniedException("Insufficient role level"),
-                        HttpStatus.FORBIDDEN);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.FORBIDDEN,
+                        path,
+                        "Forbidden",
+                        "Insufficient role level");
             }
             return chain.filter(exchange);
         };
