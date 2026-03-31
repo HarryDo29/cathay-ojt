@@ -681,6 +681,13 @@ access-token:
   secret: ${access-token.secret}
   expire: ${access-token.expire}
 
+jdbc:
+  database: ${postgres_db}
+  username: ${postgres_user}
+  password: ${postgres_password}
+  port: ${postgres_port}
+  host: ${postgres_host}
+
 internal:
   api:
     key: ${internal.api.key}

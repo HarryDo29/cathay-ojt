@@ -75,7 +75,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
         }
         log.warn("IP {} blocked by rate limit rule", ip);
         return errorHandler.writeError(exchange,
-                new NotFoundException("Rate limit exceeded"), HttpStatus.TOO_MANY_REQUESTS);
+                new NotFoundException("IP Rate limit exceeded"), HttpStatus.TOO_MANY_REQUESTS);
     }
 
     private boolean tryAccess(String ip, TokenBucketRule rule){

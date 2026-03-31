@@ -91,7 +91,7 @@ public class AccountBasedRateLimitGatewayFilterFactory
             log.warn("Account {} blocked by sliding window (limit {} per {}s) for {} {}",
                                         accountId, rule.getLimit(), rule.getWindow(), method, uri);
             return errorHandler.writeError(exchange,
-                    new RuntimeException("Too many requests"),
+                    new RuntimeException("Account Rate Limit exceeded"),
                     HttpStatus.TOO_MANY_REQUESTS);
         };
     }
