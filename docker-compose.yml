@@ -1,20 +1,6 @@
 version: '3.9'
 
 services:
-  apigateway-redis:
-    image: redis:7
-    container_name: apigateway-redis
-    command: redis-server --appendonly yes
-    ports:
-      - "6379:6379"
-    volumes:
-      - apigateway_redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   # apigateway-postgres:
   #   image: postgres:17
   #   container_name: apigateway-postgres
@@ -46,6 +32,12 @@ services:
         condition: service_healthy
     environment:
       TZ: Asia/Ho_Chi_Minh
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # ── identity ────────────────────────────────────────
   identity-postgres:

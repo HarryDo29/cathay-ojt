@@ -1,13 +1,31 @@
 spring:
   application:
     name: ApiGateway project for Cathay Life Vietnam
-  data:
-    redis:
-      host: apigateway-redis
-      port: 6379
-      timeout: 2000ms
-      repositories:
-        enabled: false
+#  data:
+#    redis:
+#      host: apigateway-redis
+#      port: 6379
+#      timeout: 2000ms
+#      repositories:
+#        enabled: false
+  management:
+    server:
+      port: 8080
+    endpoints:
+      web:
+        base-path: /actuator
+        exposure:
+          include: health,info
+    endpoint:
+      health:
+        probes:
+          enabled: true
+        show-details: never
+    health:
+      livenessstate:
+        enabled: true
+      readinessstate:
+        enabled: true
   config:
     import: optional:file:./secret.properties
 
@@ -158,6 +176,13 @@ app:
   # ============================================
   gateway:
       endpoints:
+        #================HEALTH-CHECK=================
+        - id: 7d5d95ea-6f13-4123-adb6-34cf15089b63
+          service_id:
+          method: GET
+          path: /actuator/health
+          isPublic: true
+          enabled: true
         # ========== IDENTIFY SERVICE: Auth ==========
         # Login - Public endpoint
         - id: 17eb2517-7f4e-48d0-81b5-b293fbba7916
