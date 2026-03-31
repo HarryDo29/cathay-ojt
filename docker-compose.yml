@@ -27,9 +27,6 @@ services:
     container_name: apigateway-server
     ports:
       - "8080:8080"
-    depends_on:
-      apigateway-redis:
-        condition: service_healthy
     environment:
       TZ: Asia/Ho_Chi_Minh
     healthcheck:
