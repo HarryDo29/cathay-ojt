@@ -1,23 +1,23 @@
 -- =========================================================
 -- CORS: allowed_origins & allowed_headers
 -- =========================================================
-CREATE TABLE IF NOT EXISTS cors_allowed_origins (
+CREATE TABLE IF NOT EXISTS allowed_origins (
     id UUID PRIMARY KEY,
     origin TEXT NOT NULL,
-    enabled BOOLEAN NOT NULL
+    is_enabled BOOLEAN NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS cors_allowed_headers (
+CREATE TABLE IF NOT EXISTS allowed_headers (
     id UUID PRIMARY KEY,
     header TEXT NOT NULL,
-    enabled BOOLEAN NOT NULL
+    is_enabled BOOLEAN NOT NULL
 );
 
-insert into public.allowed_origins (id, origin, is_enabled)
+insert into allowed_origins (id, origin, is_enabled)
 values  ('dc2e8355-eaf4-45ed-a0e6-d042f26fc15e', 'http://localhost:5173', true),
         ('43b6af5e-7476-4232-a1f6-df9825495caf', 'http://localhost:3000', true);
 
-insert into public.allowed_headers (id, header, is_enabled)
+insert into allowed_headers (id, header, is_enabled)
 values  ('1b3e0079-6d3f-472a-aca1-587f93a5c819', 'Content-Type', true),
         ('95b6c166-c87a-4484-8640-6372e0388449', 'Authorization', true),
         ('2818d6cb-392e-49b0-be74-108c35b14834', 'Accept', true),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS services (
     url TEXT NOT NULL,
     path TEXT NOT NULL,
     strip_prefix INT NOT NULL,
-    enabled BOOLEAN NOT NULL
+    is_enabled BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS filters (
@@ -51,23 +51,23 @@ CREATE TABLE IF NOT EXISTS service_filters (
     id UUID PRIMARY KEY,
     service_id UUID NOT NULL,
     filter_id UUID NOT NULL,
-    enabled BOOLEAN NOT NULL,
+    is_enabled BOOLEAN NOT NULL,
     sort_order INT NOT NULL,
     FOREIGN KEY (service_id) REFERENCES services(id),
     FOREIGN KEY (filter_id) REFERENCES filters(id)
 );
 
-insert into public.services (id, name, url, path, strip_prefix, is_enabled)
+insert into services (id, name, url, path, strip_prefix, is_enabled)
 values  ('fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'identity-service', 'http://localhost:8081', '/api/v1/identify-service/**', 3, true),
         ('1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd', 'order-service', 'http://localhost:8082', '/api/v1/order-service/**', 3, true);
 
-insert into public.filters (id, name, description, status)
+insert into filters (id, name, description, status)
 values  ('5ed4e50d-6b1e-492a-967a-25efd9361232', 'Authentication', 'Verify JWT token and set user context', 'ACTIVE'),
         ('517067c0-f87d-4cc6-8bc4-6ddae1e4cea2', 'Authorization', 'Check user permissions based on roles and endpoint access rules', 'ACTIVE'),
         ('074e0fd8-2f25-488f-b4b6-575b3d29ddce', 'AccountBasedRateLimit', 'Apply rate limits based on user account', 'ACTIVE'),
         ('e4436c68-1b15-443c-999b-b08687766376', 'EmailBasedRateLimit', 'Apply rate limits based on email domain for public endpoints needing extra protection', 'ACTIVE');
 
-insert into public.service_filters (id, service_id, filter_id, enabled, sort_order)
+insert into service_filters (id, service_id, filter_id, is_enabled, sort_order)
 values  ('09f2b031-8750-4f05-a4b5-612575fbb0cd', 'fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'e4436c68-1b15-443c-999b-b08687766376', true, 1),
         ('75d0b95a-ca78-45b3-8d92-886354197e44', 'fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', '5ed4e50d-6b1e-492a-967a-25efd9361232', true, 2),
         ('e9d76d8c-fe8a-4348-b1e2-6a1e3dac8a53', 'fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', '517067c0-f87d-4cc6-8bc4-6ddae1e4cea2', true, 3),
@@ -85,11 +85,11 @@ CREATE TABLE IF NOT EXISTS endpoints (
     path TEXT NOT NULL,
     is_public BOOLEAN NOT NULL,
     min_role_level INT,
-    enabled BOOLEAN NOT NULL,
+    is_enabled BOOLEAN NOT NULL,
     FOREIGN KEY (service_id) REFERENCES services(id)
 );
 
-insert into public.endpoints (id, service_id, method, path, is_public, min_role_level, is_enabled)
+insert into endpoints (id, service_id, method, path, is_public, min_role_level, is_enabled)
 values  ('17eb2517-7f4e-48d0-81b5-b293fbba7916', 'fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'POST', '/api/v1/identify-service/auth/login', true, null, true),
         ('d20e9148-a59a-4be8-ab99-863ceefa2b12', 'fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'POST', '/api/v1/identify-service/auth/register', true, null, true),
         ('ca80402b-7df3-434b-b18e-32437bb05e65', 'fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'POST', '/api/v1/identify-service/auth/logout', false, 1, true),
@@ -117,10 +117,10 @@ CREATE TABLE IF NOT EXISTS roles (
     name TEXT NOT NULL,
     description TEXT,
     level INT NOT NULL,
-    enabled BOOLEAN NOT NULL
+    is_enabled BOOLEAN NOT NULL
 );
 
-insert into public.roles (id, name, description, level, is_enabled)
+insert into roles (id, name, description, level, is_enabled)
 values  ('fa6adb4b-b33b-418f-bf03-a2f719ac6609', 'ADMIN', 'Administrator with full access', 4, true),
         ('ca0c424c-e76f-4a85-a5a1-31cc0fac1e46', 'MANAGER', 'Manager with elevated permissions', 3, true),
         ('a00d7585-9525-4dcb-9fa3-235bc2f7aca0', 'STAFF', 'Guest user with read-only access', 2, true),
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS method_rules (
     max_body_size BIGINT NOT NULL
 );
 
-insert into public.method_rules (id, method, require_body, require_content_type, max_body_size)
+insert into method_rules (id, method, require_body, require_content_type, max_body_size)
 values  ('4e4efc20-fb6f-4d4b-bad6-143ab0b55c26', 'POST', true, true, 10485760),
         ('0f06cdfb-52be-4be7-9449-b9b387eb9ffe', 'PUT', true, true, 10485760),
         ('f3a88138-87c6-4dde-b097-30e87be0ca72', 'PATCH', true, true, 10485760),
@@ -159,17 +159,12 @@ CREATE TABLE IF NOT EXISTS endpoint_header_rules (
     id UUID PRIMARY KEY,
     endpoint_id UUID NOT NULL,
     header_rule_id UUID NOT NULL,
-    required BOOLEAN NOT NULL,
+    is_required BOOLEAN NOT NULL,
     FOREIGN KEY (endpoint_id) REFERENCES endpoints(id),
     FOREIGN KEY (header_rule_id) REFERENCES header_rules(id)
 );
 
--- Content-Length (id không dùng ở nơi khác, cho DB tự sinh)
-INSERT INTO header_rules (id, name, max_length, pattern, description) VALUES
-('2c019433-1cd0-4b60-95fb-09af9d019daa','Content-Length',20,'^[0-9]{1,20}$','Size of request body in bytes (numeric only)');
-
--- Các header còn lại dùng đúng id trong YAML
-insert into public.header_rules (id, name, max_length, pattern, description)
+insert into header_rules (id, name, max_length, pattern, description)
 values  ('2c019433-1cd0-4b60-95fb-09af9d019daa', 'Content-Length', 20, '^[0-9]{1,20}$', 'Size of request body in bytes (numeric only)'),
         ('c1b84d8e-f74f-4db5-81b6-b3b6d03c8e7f', 'Host', 255, '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*(:[0-9]{1,5})?$', 'Hostname of the server (e.g., api.example.com, localhost:8080)'),
         ('b8f85481-fbed-4ff4-bb51-423c48063b73', 'Accept', 255, '^[a-zA-Z0-9*+\\-./;=, ]+$', 'Media types that are acceptable for the response (e.g., application/json, text/html, */*)'),
@@ -188,10 +183,10 @@ CREATE TABLE IF NOT EXISTS ratelimit_rules (
     type TEXT NOT NULL,
     key_type TEXT NOT NULL,
     rule TEXT NOT NULL,
-    enabled BOOLEAN NOT NULL
+    is_enabled BOOLEAN NOT NULL
 );
 
-insert into public.ratelimit_rules (id, type, key_type, rule, is_enabled)
+insert into ratelimit_rules (id, type, key_type, rule, is_enabled)
 values  ('faf2473a-7310-4b59-88a6-580d45bc2ca3', 'TOKEN_BUCKET', 'IP', '{
         "replenish_rate": "10",
         "burst_capacity": "100",
@@ -233,7 +228,7 @@ values  ('faf2473a-7310-4b59-88a6-580d45bc2ca3', 'TOKEN_BUCKET', 'IP', '{
 CREATE TABLE IF NOT EXISTS circuit_breaker_rules(
     id UUID PRIMARY KEY,
     service_id UUID,
-    enabled BOOLEAN NOT NULL,
+    is_enabled BOOLEAN NOT NULL,
     failure_rate_threshold INT NOT NULL,
     slow_call_rate_threshold INT NOT NULL,
     slow_call_duration_threshold TEXT NOT NULL,
@@ -245,6 +240,6 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_rules(
     name TEXT NOT NULL
 );
 
-insert into public.circuit_breaker_rules (id, service_id, is_enabled, failure_rate_threshold, slow_call_rate_threshold, slow_call_duration_threshold, permitted_number_of_calls_in_half_open_state, sliding_window_type, sliding_window_size, minimum_number_of_calls, wait_duration_in_open_state, name)
+insert into circuit_breaker_rules (id, service_id, is_enabled, failure_rate_threshold, slow_call_rate_threshold, slow_call_duration_threshold, permitted_number_of_calls_in_half_open_state, sliding_window_type, sliding_window_size, minimum_number_of_calls, wait_duration_in_open_state, name)
 values  ('2f5a6c7d-3e8a-4d21-9b10-7a1c2d3e4f50', '1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd', true, 50, 50, '8s', 5, 'COUNT_BASED', 50, 20, '30s', 'orderServiceCircuitBreaker'),
         ('1c9e4d2b-1b2e-4eac-9a62-0b6e8a8ea010', null, true, 35, 50, '10s', 2, 'COUNT_BASED', 50, 25, '20s', 'defaultCircuitBreaker');
