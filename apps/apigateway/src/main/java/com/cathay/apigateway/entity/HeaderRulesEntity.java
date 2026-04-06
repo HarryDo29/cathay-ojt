@@ -1,25 +1,26 @@
 package com.cathay.apigateway.entity;
 
 import lombok.Data;
+import lombok.NonNull;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.util.UUID;
 
-//@Table("allowed_headers")
+
 @Data
+@Table("header_rules")
 public class HeaderRulesEntity {
-//    @Id
+    @Id
     private UUID id;
 
     private String name;
 
+    @NonNull
     private Integer max_length;
 
+    @NonNull
     private String pattern;
 
     private String description;
-
-//    @CreatedDate
-//    private LocalDateTime created_at;
-//
-//    @LastModifiedDate
-//    private LocalDateTime updated_at;
 }

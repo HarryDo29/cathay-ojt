@@ -1,13 +1,13 @@
 spring:
   application:
     name: ApiGateway project for Cathay Life Vietnam
-  data:
-    redis:
-      host: apigateway-redis
-      port: 6379
-      timeout: 2000ms
-      repositories:
-        enabled: false
+#  data:
+#    redis:
+#      host: apigateway-redis
+#      port: 6379
+#      timeout: 2000ms
+#      repositories:
+#        enabled: false
   config:
     import: optional:file:./secret.properties
 
@@ -38,31 +38,31 @@ app:
       - id: 95b6c166-c87a-4484-8640-6372e0388449
         header: Authorization
         enabled: true
-      
+
       - id: 2818d6cb-392e-49b0-be74-108c35b14834
         header: Accept
         enabled: true
-      
+
       - id: acd5b0fb-e0e2-416b-8388-e941b6067056
         header: Origin
         enabled: true
-      
+
       - id: 6a8c684e-75f8-431d-be2e-8be6e53f8f33
         header: Access-Control-Request-Method
         enabled: true
-      
+
       - id: fe4c7ac2-bee7-4ee1-8b04-edd57bb6fb1a
         header: Access-Control-Request-Headers
         enabled: true
-      
+
       - id: fe6b3233-bb56-4ba7-be11-ec93677aee8d
         header: X-XSRF-Token
         enabled: true
-      
+
       - id: 892d5b15-7704-4f5f-bcc2-a0ff9a6a9b37
         header: X-Request-Id
         enabled: true
-      
+
       - id: 885c49ad-1656-477a-a8c4-0efd60e7004c
         header: X-Api-Key
         enabled: true

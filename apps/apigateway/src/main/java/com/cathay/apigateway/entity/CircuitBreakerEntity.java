@@ -1,17 +1,22 @@
 package com.cathay.apigateway.entity;
 
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.util.UUID;
 
 @Data
-//@Entity
+@Table("circuit_breaker_rules")
 public class CircuitBreakerEntity {
-//    @Id
+    @Id
     private UUID id;
 
+    @Column("service_id")
     private UUID service_id;
 
-    private boolean enabled;
+    private Boolean enabled;
 
     private int failure_rate_threshold;
 

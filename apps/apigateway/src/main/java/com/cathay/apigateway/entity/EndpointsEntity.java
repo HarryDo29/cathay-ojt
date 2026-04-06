@@ -1,33 +1,34 @@
 package com.cathay.apigateway.entity;
 
 import lombok.Data;
+import lombok.NonNull;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.util.UUID;
 
-//@Table("endpoints")
+
 @Data
+@Table("endpoints")
 public class EndpointsEntity {
-//    @Id
+    @Id
     private UUID id;
 
+    @NonNull
     private String path;
 
     private String method;
 
-//    @Column("service_id")
+    @Column("service_id")
     private String serviceId;
 
-//    @Column("is_enabled")
+    @Column("is_enabled")
     private boolean enabled;
 
-//    @Column("is_public")
+    @Column("is_public")
     private boolean isPublic;
 
-//    @Column("min_role_level")
+    @Column("min_role_level")
     private int minRoleLevel;
-
-//    @CreatedDate
-//    private LocalDateTime created_at;
-//
-//    @LastModifiedDate
-//    private LocalDateTime updated_at;
 }

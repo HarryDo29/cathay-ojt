@@ -1,23 +1,23 @@
 -- =========================================================
 -- CORS: allowed_origins & allowed_headers
 -- =========================================================
-CREATE TABLE IF NOT EXISTS cors_allowed_origins (
+CREATE TABLE IF NOT EXISTS allowed_origins (
     id UUID PRIMARY KEY,
     origin TEXT NOT NULL,
     enabled BOOLEAN NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS cors_allowed_headers (
+CREATE TABLE IF NOT EXISTS allowed_headers (
     id UUID PRIMARY KEY,
     header TEXT NOT NULL,
     enabled BOOLEAN NOT NULL
 );
 
-INSERT INTO cors_allowed_origins (id, origin, enabled) VALUES
+INSERT INTO allowed_origins (id, origin, enabled) VALUES
 ('dc2e8355-eaf4-45ed-a0e6-d042f26fc15e','http://localhost:5173', TRUE),
 ('43b6af5e-7476-4232-a1f6-df9825495caf','http://localhost:3000', TRUE);
 
-INSERT INTO cors_allowed_headers (id, header, enabled) VALUES
+INSERT INTO allowed_headers (id, header, enabled) VALUES
 ('1b3e0079-6d3f-472a-aca1-587f93a5c819','Content-Type', TRUE),
 ('95b6c166-c87a-4484-8640-6372e0388449','Authorization', TRUE),
 ('2818d6cb-392e-49b0-be74-108c35b14834','Accept', TRUE),
@@ -255,3 +255,26 @@ INSERT INTO ratelimit_rules (id, type, key_type, rule, enabled) VALUES
    "limit": "100",
    "priority": "3"
  }', TRUE);
+
+ -- =========================================================
+ -- CIRCUIT BREAKER RULES
+ -- =========================================================
+ CREATE TABLE IF NOT EXISTS circuit_breaker_rules (
+    id UUID PRIMARY KEY,
+    service_id UUID NOT NULL,
+    is_enabled BOOLEAN NOT NULL,
+    failure_rate_threshold INT NOT NULL,
+    slow_call_rate_threshold INT NOT NULL,
+    slow_call_duration_threshold TEXT NOT NULL,
+    permitted_number_of_calls_in_half_open_state INT NOT NULL,
+    sliding_window_type TEXT NOT NULL,
+    sliding_window_size INT NOT NULL,
+    minimum_number_of_calls INT NOT NULL,
+    wait_duration_in_open_state TEXT NOT NULL,
+    name TEXT NOT NULL,
+    FOREIGN KEY (service_id) REFERENCES services(id)
+ );
+
+ INSERT INTO circuit_breaker_rules (id, service_id, is_enabled, failure_rate_threshold, slow_call_rate_threshold, slow_call_duration_threshold, permitted_number_of_calls_in_half_open_state, sliding_window_type, sliding_window_size, minimum_number_of_calls, wait_duration_in_open_state, name) VALUES
+ ('1c9e4d2b-1b2e-4eac-9a62-0b6e8a8ea010', '', TRUE, 35, 50, '10s', 2, 'COUNT_BASED', 50, 25, '20s', 'defaultCircuitBreaker'),
+ ('2f5a6c7d-3e8a-4d21-9b10-7a1c2d3e4f50', '1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd', TRUE, 50, 50, '8s', 5, 'COUNT_BASED', 50, 20, '30s', 'orderServiceCircuitBreaker');

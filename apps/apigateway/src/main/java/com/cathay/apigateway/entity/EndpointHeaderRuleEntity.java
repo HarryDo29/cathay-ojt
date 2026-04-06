@@ -1,21 +1,26 @@
 package com.cathay.apigateway.entity;
 
 import lombok.Data;
+import org.checkerframework.checker.units.qual.C;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.util.UUID;
 
-//@Table("endpoint_header_rules")
+
 @Data
+@Table("endpoint_header_rules")
 public class EndpointHeaderRuleEntity {
-//    @Id
+    @Id
     private UUID id;
 
+    @Column("endpoint_id")
     private UUID endpoint_id;
 
+    @Column("header_rule_id")
     private UUID header_rule_id;
 
-    private boolean required;
-
-    // Reference to the actual header rule (for convenience)
-//    private String headerName;
-//    private Integer maxLength;
+    @Column("is_required")
+    private Boolean required;
 }

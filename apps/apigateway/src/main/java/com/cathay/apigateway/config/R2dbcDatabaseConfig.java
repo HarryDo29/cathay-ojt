@@ -6,9 +6,11 @@ import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 
+import java.sql.Driver;
 import java.time.Duration;
 
 @Configuration
@@ -29,11 +31,12 @@ public class R2dbcDatabaseConfig extends AbstractR2dbcConfiguration {
     @Value("${jdbc.password}")
     private String password;
 
+    @Bean
     @Override
     public ConnectionFactory connectionFactory() {
         ConnectionFactoryOptions options = ConnectionFactoryOptions
                 .builder()
-                .option(ConnectionFactoryOptions.DRIVER, database)
+                .option(ConnectionFactoryOptions.DRIVER, "postgres")
                 .option(ConnectionFactoryOptions.HOST, host)
                 .option(ConnectionFactoryOptions.PORT, Integer.parseInt(port))
                 .option(ConnectionFactoryOptions.USER, username)
