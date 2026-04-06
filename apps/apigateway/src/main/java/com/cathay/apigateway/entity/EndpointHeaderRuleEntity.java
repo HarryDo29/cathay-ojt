@@ -1,6 +1,7 @@
 package com.cathay.apigateway.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 
 @Data
+@NoArgsConstructor
 @Table("endpoint_header_rules")
 public class EndpointHeaderRuleEntity {
     @Id

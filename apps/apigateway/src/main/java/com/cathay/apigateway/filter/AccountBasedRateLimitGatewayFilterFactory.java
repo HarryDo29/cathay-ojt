@@ -3,7 +3,7 @@ package com.cathay.apigateway.filter;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.ManualSlidingWindow;
-import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.service.RateLimitRuleService;
 import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -21,12 +21,12 @@ public class AccountBasedRateLimitGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AccountBasedRateLimitGatewayFilterFactory.Config> {
     private static final String ACCOUNT_RATE_LIMIT_PATTERN = "Rate_Limit:ACCOUNT:%s:%s:%s";
 
-    private final RateLimitService rateLimitService;
+    private final RateLimitRuleService rateLimitService;
     private final CacheUtil cacheUtil;
     private final Cache<String, ManualSlidingWindow> accountRateLimitCache;
     private final ErrorHandler errorHandler;
 
-    public AccountBasedRateLimitGatewayFilterFactory(RateLimitService rateLimitService,
+    public AccountBasedRateLimitGatewayFilterFactory(RateLimitRuleService rateLimitService,
                                                      CacheUtil cacheUtil,
                                                      Cache<String, ManualSlidingWindow> accountRateLimitCache,
                                                      ErrorHandler errorHandler) {

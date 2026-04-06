@@ -1,6 +1,6 @@
 package com.cathay.apigateway.core.routing;
 
-import com.cathay.apigateway.entity.EndpointsEntity;
+import com.cathay.apigateway.entity.EndpointEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public class PathTrie {
         return path.split("/");
     }
 
-    public void insertTrie(EndpointsEntity endpoint){
+    public void insertTrie(EndpointEntity endpoint){
         TrieNode current = root; // Bắt đầu từ gốc của Trie
         String[] segments = this.parsePath(endpoint.getPath());
 
@@ -48,6 +48,13 @@ public class PathTrie {
         current.operations.computeIfAbsent(endpoint.getMethod().toUpperCase(), k -> endpoint);
     }
 
+    public void clear() {
+        root.children.clear();
+        root.paramNode = null;
+        root.paramName = null;
+        root.operations.clear();
+    }
+
     public MatchResult matchTrie(String path, String method){
         TrieNode current = root; // Duyệt từ gốc của Trie
         Map<String, String> extractedParams = new HashMap<>(); // Lưu trữ các tham số được trích xuất
@@ -65,7 +72,7 @@ public class PathTrie {
                 return MatchResult.notFound(); // Không tìm thấy đường dẫn
             }
         }
-        EndpointsEntity matchedEndpoint = current.operations.get(method.toUpperCase());
+        EndpointEntity matchedEndpoint = current.operations.get(method.toUpperCase());
         if (matchedEndpoint != null) {
             log.info("Matched endpoint: {}, method: {}", matchedEndpoint, method);
             return MatchResult.found(matchedEndpoint, extractedParams);

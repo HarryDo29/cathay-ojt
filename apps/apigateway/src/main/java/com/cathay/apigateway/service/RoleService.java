@@ -1,7 +1,7 @@
 package com.cathay.apigateway.service;
 
 import com.cathay.apigateway.entity.RoleEntity;
-import com.cathay.apigateway.interfaces.IRoleRuleRepository;
+import com.cathay.apigateway.interfaces.IRoleRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class RoleService {
-    private final IRoleRuleRepository roleRuleRepository;
+    private final IRoleRepository roleRuleRepository;
 
 
     /** Quick lookup: role name (e.g. "ADMIN") → level (e.g. 4) */
     @Getter
     private volatile Map<String, RoleEntity> roleLevelMap = Map.of();
 
-    public RoleService(IRoleRuleRepository roleRuleRepository) {
+    public RoleService(IRoleRepository roleRuleRepository) {
         this.roleRuleRepository = roleRuleRepository;
     }
 

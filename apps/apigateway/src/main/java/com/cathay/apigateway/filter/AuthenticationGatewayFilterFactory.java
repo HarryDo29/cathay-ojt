@@ -1,7 +1,7 @@
 package com.cathay.apigateway.filter;
 
-import com.cathay.apigateway.entity.EndpointsEntity;
-import com.cathay.apigateway.service.EndpointRegisterService;
+import com.cathay.apigateway.entity.EndpointEntity;
+import com.cathay.apigateway.service.EndpointService;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.cathay.apigateway.util.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -23,11 +23,11 @@ import java.util.List;
 public class AuthenticationGatewayFilterFactory extends
         AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config> {
 
-    private final EndpointRegisterService endpointRegisterService;
+    private final EndpointService endpointRegisterService;
     private final JwtUtil jwtUtil;
     private final ErrorHandler errorHandler;
 
-    public AuthenticationGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
+    public AuthenticationGatewayFilterFactory(EndpointService endpointRegisterService,
                                               JwtUtil jwtUtil, ErrorHandler errorHandler) {
         super(Config.class);
         this.endpointRegisterService = endpointRegisterService;
@@ -44,7 +44,7 @@ public class AuthenticationGatewayFilterFactory extends
             val path = exchange.getRequest().getURI().getPath();
             val method = exchange.getRequest().getMethod();
             log.info("\uD83D\uDD10 Authenticating request for path: {}", path);
-            EndpointsEntity endpoint = endpointRegisterService.getEndpoint(path, method.toString()).getEntity();
+            EndpointEntity endpoint = endpointRegisterService.getEndpoint(path, method.toString()).getEntity();
             if (endpoint.isPublic()) {
                 log.info("\uD83D\uDD10 Skipping authentication for public endpoint: {}", path);
                 ServerHttpRequest req = exchange.getRequest()

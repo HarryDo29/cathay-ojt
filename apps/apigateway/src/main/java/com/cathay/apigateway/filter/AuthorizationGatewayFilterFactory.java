@@ -1,8 +1,8 @@
 package com.cathay.apigateway.filter;
 
-import com.cathay.apigateway.entity.EndpointsEntity;
+import com.cathay.apigateway.entity.EndpointEntity;
 import com.cathay.apigateway.entity.RoleEntity;
-import com.cathay.apigateway.service.EndpointRegisterService;
+import com.cathay.apigateway.service.EndpointService;
 import com.cathay.apigateway.service.RoleService;
 import com.cathay.apigateway.util.ErrorHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +18,11 @@ import java.nio.file.AccessDeniedException;
 public class AuthorizationGatewayFilterFactory extends
         AbstractGatewayFilterFactory<AuthorizationGatewayFilterFactory.Config> {
 
-    private final EndpointRegisterService endpointRegisterService;
+    private final EndpointService endpointRegisterService;
     private final RoleService roleService;
     private final ErrorHandler errorHandler;
 
-    public AuthorizationGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
+    public AuthorizationGatewayFilterFactory(EndpointService endpointRegisterService,
                                              RoleService roleService, ErrorHandler errorHandler) {
         super(Config.class);
         this.endpointRegisterService = endpointRegisterService;
@@ -36,7 +36,7 @@ public class AuthorizationGatewayFilterFactory extends
             val path = exchange.getRequest().getURI().getPath();
             val method = exchange.getRequest().getMethod();
             // find endpoint entity by path and method
-            EndpointsEntity endpoint = endpointRegisterService
+            EndpointEntity endpoint = endpointRegisterService
                             .getEndpoint(path, method.toString())
                             .getEntity();
             // endpoint is public, skip authorization

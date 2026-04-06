@@ -1,6 +1,6 @@
 package com.cathay.apigateway.service;
 
-import com.cathay.apigateway.entity.HeaderRulesEntity;
+import com.cathay.apigateway.entity.HeaderRuleEntity;
 import com.cathay.apigateway.interfaces.IHeaderRuleRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Service
 public class HeaderRuleService {
     @Getter
-    private volatile Map<String, HeaderRulesEntity> headers = Map.of(); // Initialize with empty set
+    private volatile Map<String, HeaderRuleEntity> headers = Map.of(); // Initialize with empty set
 
     private final IHeaderRuleRepository allowedHeaderRepo;
 
@@ -30,7 +30,7 @@ public class HeaderRuleService {
     }
 
     public Mono<Void> loadAllowedHeaders(){
-        return allowedHeaderRepo.getAllAllowedHeaders()
+        return allowedHeaderRepo.getHeaderRules()
                 .collectList()
                 .doOnNext(allowedHeaderList ->
                         headers = Map.copyOf(

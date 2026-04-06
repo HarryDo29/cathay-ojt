@@ -3,12 +3,12 @@ package com.cathay.apigateway.filter;
 import com.cathay.apigateway.core.routing.MatchResult;
 import com.cathay.apigateway.data.config.LimitPropertiesConfig;
 import com.cathay.apigateway.entity.EndpointHeaderRuleEntity;
-import com.cathay.apigateway.entity.EndpointsEntity;
-import com.cathay.apigateway.entity.HeaderRulesEntity;
+import com.cathay.apigateway.entity.EndpointEntity;
+import com.cathay.apigateway.entity.HeaderRuleEntity;
 import com.cathay.apigateway.entity.MethodRuleEntity;
 import com.cathay.apigateway.enums.Status;
 import com.cathay.apigateway.service.EndpointHeaderRuleService;
-import com.cathay.apigateway.service.EndpointRegisterService;
+import com.cathay.apigateway.service.EndpointService;
 import com.cathay.apigateway.service.HeaderRuleService;
 import com.cathay.apigateway.service.MethodRuleService;
 import com.cathay.apigateway.util.ErrorHandler;
@@ -34,19 +34,19 @@ import java.util.*;
 @Component
 public class ValidationGlobalGateway implements GlobalFilter, Ordered {
     private final LimitPropertiesConfig limitPropertiesConfig;
-    private final EndpointRegisterService endpointRegisterService;
+    private final EndpointService endpointRegisterService;
     private final MethodRuleService methodRuleService;
     private final HeaderRuleService headerRuleService;
     private final EndpointHeaderRuleService endpointHeaderRuleService;
     private final ErrorHandler errorHandler;
 
     // Caches - initialized in @PostConstruct to avoid circular dependency
-    private Map<String, HeaderRulesEntity> headerRuleCache;
+    private Map<String, HeaderRuleEntity> headerRuleCache;
     private Map<String, List<EndpointHeaderRuleEntity>> endpointHeaderRuleCache;
 
     public ValidationGlobalGateway(
             LimitPropertiesConfig limitPropertiesConfig,
-            EndpointRegisterService endpointRegisterService,
+            EndpointService endpointRegisterService,
             MethodRuleService methodRuleService,
             HeaderRuleService headerRuleService,
             EndpointHeaderRuleService endpointHeaderRuleService,
@@ -94,7 +94,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
             );
         }
         
-        EndpointsEntity endpoint = result.getEntity();
+        EndpointEntity endpoint = result.getEntity();
         log.info("Endpoint: {}", endpoint);
         if (!endpoint.isEnabled()) {
             log.warn("Endpoint disabled: {} {}", method, path);
@@ -146,8 +146,8 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
 
         // 2.1 Validate required headers
         for (EndpointHeaderRuleEntity rule : endpointHeaderRules) {
-            if (rule.isRequired()) {
-                HeaderRulesEntity headerRule = headerRuleCache.get(rule.getHeader_rule_id().toString());
+            if (rule.getRequired()) {
+                HeaderRuleEntity headerRule = headerRuleCache.get(rule.getHeader_rule_id().toString());
                 if (headerRule == null) {
                     log.error("Header rule not found: {}", rule.getHeader_rule_id());
                     continue;
@@ -169,9 +169,9 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // PHASE 3: DETAILED HEADER VALIDATION
         // ============================================
         // Build set of allowed header IDs for this endpoint for O(1) lookup
-        Map<String, HeaderRulesEntity> allowedHeaderRules = new HashMap<>(Map.of());
+        Map<String, HeaderRuleEntity> allowedHeaderRules = new HashMap<>(Map.of());
         for (EndpointHeaderRuleEntity rule : endpointHeaderRules) {
-            HeaderRulesEntity headerRule = headerRuleCache.get(rule.getHeader_rule_id().toString());
+            HeaderRuleEntity headerRule = headerRuleCache.get(rule.getHeader_rule_id().toString());
             if (headerRule != null) {
                 allowedHeaderRules.put(headerRule.getName().toLowerCase(), headerRule);
             }
@@ -187,7 +187,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
             }
 
             // Get header rule by name (case-insensitive)
-            HeaderRulesEntity headerRule = allowedHeaderRules.get(headerName.toLowerCase());
+            HeaderRuleEntity headerRule = allowedHeaderRules.get(headerName.toLowerCase());
             
             // Skip if header not in our rules (allow unknown headers)
             if (headerRule == null) {
@@ -247,7 +247,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
             ServerWebExchange exchange,
             String headerName,
             String headerValue,
-            HeaderRulesEntity headerRule) {
+            HeaderRuleEntity headerRule) {
         // 0. Check if header value exists and not empty
         if (headerValue == null || headerValue.isEmpty()) {
             log.debug("Header '{}' has empty value, skipping validation", headerName);

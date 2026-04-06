@@ -1,10 +1,10 @@
 package com.cathay.apigateway.filter;
 
-import com.cathay.apigateway.entity.RateLimitEntity;
+import com.cathay.apigateway.entity.RateLimitRuleEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.model.TokenBucketRule;
-import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.service.RateLimitRuleService;
 import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.cathay.apigateway.model.ManualTokenBucket;
@@ -31,7 +31,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
     private static final String IP_RATE_LIMIT_PATTERN = "Rate_Limit:IP:%s";
     private static final String ABUSE_COUNTER_PATTERN = "Abuse_Counter:IP:%s";
 
-    private final RateLimitService rateLimitService;
+    private final RateLimitRuleService rateLimitService;
     private final ErrorHandler errorHandler;
     private final Cache<String, ManualTokenBucket> ipRateLimitCache;
     private final CacheUtil cacheUtil;
@@ -103,7 +103,7 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
 
     // Get rate limit rule for IP-based key type
     private TokenBucketRule findIpRateLimitConfig() {
-         RateLimitEntity rate = rateLimitService.getRateLimitList()
+         RateLimitRuleEntity rate = rateLimitService.getRateLimitList()
                 .stream()
                 .filter(r -> r.getKeyType() == KeyType.IP && r.getType() == RateLimitType.TOKEN_BUCKET)
                 .findFirst()

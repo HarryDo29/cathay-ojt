@@ -34,7 +34,7 @@ public class AllowedOriginService {
                 .collectList()
                 .doOnNext(origins -> {
                     allowedOriginList = new ArrayList<>(origins
-                            .stream().filter(AllowedOriginEntity::isEnabled).toList()
+                            .stream().filter(AllowedOriginEntity::getEnabled).toList()
                     );
                 })
                 .then();

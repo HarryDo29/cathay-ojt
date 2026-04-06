@@ -1,7 +1,7 @@
 package com.cathay.apigateway.config;
 
-import com.cathay.apigateway.entity.CircuitBreakerEntity;
-import com.cathay.apigateway.service.CircuitBreakerService;
+import com.cathay.apigateway.entity.CircuitBreakerRuleEntity;
+import com.cathay.apigateway.service.CircuitBreakerRuleService;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
@@ -15,20 +15,17 @@ import java.util.List;
 @Slf4j
 @Configuration
 public class GatewayCircuitBreakerConfig {
-    private final CircuitBreakerService circuitBreakerService;
+    private final CircuitBreakerRuleService circuitBreakerService;
 
-    public GatewayCircuitBreakerConfig(CircuitBreakerService circuitBreakerService) {
+    public GatewayCircuitBreakerConfig(CircuitBreakerRuleService circuitBreakerService) {
         this.circuitBreakerService = circuitBreakerService;
     }
 
     @Bean
     public Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCircuitBreakerCustomizer() {
         return factory -> {
-            List<CircuitBreakerEntity> circuitBreakerList = circuitBreakerService.getCircuitBreakerList();
 
-            CircuitBreakerEntity entity = circuitBreakerList.stream()
-                    .filter(cb -> cb.getName().equals("defaultCircuitBreaker"))
-                    .findFirst()
+            CircuitBreakerRuleEntity entity = circuitBreakerService.findDefaultCircuitBreaker()
                     .orElse(null);
 
             CircuitBreakerConfig defaultConfig;
@@ -36,7 +33,7 @@ public class GatewayCircuitBreakerConfig {
                 defaultConfig = CircuitBreakerConfig.custom()
                         .failureRateThreshold(entity.getFailure_rate_threshold())
                         .slowCallRateThreshold(entity.getSlow_call_rate_threshold())
-//                        .slowCallDurationThreshold(Duration.parse("PT" + entity.getSlow_call_duration_threshold()))
+                        .slowCallDurationThreshold(Duration.parse("PT" + entity.getSlow_call_duration_threshold()))
                         .permittedNumberOfCallsInHalfOpenState(entity.getPermitted_number_of_calls_in_half_open_state())
                         .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.valueOf(entity.getSliding_window_type()))
                         .slidingWindowSize(entity.getSliding_window_size())
@@ -49,7 +46,7 @@ public class GatewayCircuitBreakerConfig {
                 defaultConfig = CircuitBreakerConfig.custom()
                         .failureRateThreshold(35)
                         .slowCallRateThreshold(50)
-//                        .slowCallDurationThreshold(Duration.parse("PT" + "1S"))
+                        .slowCallDurationThreshold(Duration.parse("PT" + "1S"))
                         .permittedNumberOfCallsInHalfOpenState(5)
                         .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
                         .slidingWindowSize(50)
@@ -63,7 +60,7 @@ public class GatewayCircuitBreakerConfig {
             factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
                     .circuitBreakerConfig(defaultConfig)
                     .build());
-
+//            List<CircuitBreakerRuleEntity> circuitBreakerList = circuitBreakerService.getCircuitBreakerList();
 //            for (CircuitBreakerEntity cb : circuitBreakerList) {
 //                if (cb != null && cb.getService_id() != null && !"defaultCircuitBreaker".equalsIgnoreCase(cb.getName())) {
 //                    CircuitBreakerConfig customConfig = CircuitBreakerConfig.custom()

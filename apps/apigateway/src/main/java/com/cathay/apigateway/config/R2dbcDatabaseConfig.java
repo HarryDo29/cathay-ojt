@@ -47,9 +47,9 @@ public class R2dbcDatabaseConfig extends AbstractR2dbcConfiguration {
         ConnectionFactory factory = ConnectionFactories.get(options);
 
         ConnectionPoolConfiguration poolConfig = ConnectionPoolConfiguration.builder(factory)
-                .initialSize(10)
-                .maxSize(20)
-                .maxIdleTime(Duration.ofMinutes(10))
+                .initialSize(0)
+                .maxSize(2)
+                .maxIdleTime(Duration.ofMinutes(1))
                 .validationQuery("SELECT 1")
                 .build();
 
