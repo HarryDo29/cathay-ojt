@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS service_filters (
 );
 
 insert into services (id, name, url, path, strip_prefix, is_enabled)
-values  ('fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'identity-service', 'http://localhost:8081', '/api/v1/identify-service/**', 3, true),
-        ('1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd', 'order-service', 'http://localhost:8082', '/api/v1/order-service/**', 3, true);
+values  ('fc222ee8-06b5-4c35-ad6a-46c079a8cf8e', 'identity-service', 'http://identify-service:8081', '/api/v1/identify-service/**', 3, true),
+        ('1d07a7fe-0fbd-4e62-8f52-f6f3452e01dd', 'order-service', 'http://order-service:8082', '/api/v1/order-service/**', 3, true);
 
 insert into filters (id, name, description, status)
 values  ('5ed4e50d-6b1e-492a-967a-25efd9361232', 'Authentication', 'Verify JWT token and set user context', 'ACTIVE'),
