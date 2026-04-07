@@ -1,23 +1,40 @@
 version: '3.9'
 
 services:
+  # apigateway-redis:
+  #   image: redis:7
+  #   container_name: apigateway-redis
+  #   command: redis-server --appendonly yes
   # apigateway-postgres:
   #   image: postgres:17
   #   container_name: apigateway-postgres
   #   ports:
-  #     - '5432:5432'
-  #   environment:
-  #     POSTGRES_DB: postgres
-  #     POSTGRES_USER: apigateway_service
-  #     POSTGRES_PASSWORD: generated_password_for_fun
+  #     - "6379:6379"
   #   volumes:
-  #     - apigateway_pg_data:/var/lib/postgresql/data
-  #     - ./sql-script.sql:/docker-entrypoint-initdb.d/sql-script.sql:ro
+  #     - apigateway_redis_data:/data
   #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U apigateway_service -d postgres"]
+  #     test: ["CMD", "redis-cli", "ping"]
   #     interval: 5s
-  #     timeout: 5s
+  #     timeout: 3s
   #     retries: 5
+
+  apigateway-postgres:
+    image: postgres:17
+    container_name: apigateway-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: apigateway_service
+      POSTGRES_PASSWORD: generated_password_for_fun
+    volumes:
+      - apigateway_pg_data:/var/lib/postgresql/data
+      - ./sql-script.sql:/docker-entrypoint-initdb.d/sql-script.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apigateway_service -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 
   apigateway-server:

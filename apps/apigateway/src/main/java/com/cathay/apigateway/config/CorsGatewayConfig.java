@@ -31,7 +31,7 @@ public class CorsGatewayConfig {
         // Get Allowed Origin
         List<String> allowedOrigins = allowedOriginService.getAllowedOriginList()
                 .stream()
-                .map(origin -> origin.isEnabled() ? origin.getOrigin() : null)
+                .map(origin -> origin.getEnabled() ? origin.getOrigin() : null)
                 .filter(Objects::nonNull)
                 .toList();
         corsConfiguration.setAllowedOrigins(allowedOrigins);

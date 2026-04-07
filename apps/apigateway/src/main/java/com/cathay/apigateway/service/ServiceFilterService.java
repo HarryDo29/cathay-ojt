@@ -21,9 +21,9 @@ public class ServiceFilterService {
     private volatile Map<UUID, List<ServiceFilterEntity>> serviceFiltersMap = new HashMap<>();
 
     private final IServiceFilterRepository serviceFilterRepo;
-    private final RouteFilterService routeFilterService;
+    private final FilterService routeFilterService;
 
-    public ServiceFilterService(IServiceFilterRepository serviceFilterRepo, RouteFilterService routeFilterService) {
+    public ServiceFilterService(IServiceFilterRepository serviceFilterRepo, FilterService routeFilterService) {
         this.serviceFilterRepo = serviceFilterRepo;
         this.routeFilterService = routeFilterService;
     }
@@ -35,7 +35,7 @@ public class ServiceFilterService {
         log.info("[ServiceFilter] ✅ Service-filter mappings ready — {} services configured", serviceFiltersMap.size());
     }
 
-    private Mono<Void> loadServiceFilters() {
+    public Mono<Void> loadServiceFilters() {
         return serviceFilterRepo.getAllServiceFilters()
                 .collectList()
                 .doOnNext(list -> {

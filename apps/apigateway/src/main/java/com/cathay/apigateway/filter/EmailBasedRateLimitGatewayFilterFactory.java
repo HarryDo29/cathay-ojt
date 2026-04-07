@@ -1,13 +1,13 @@
 package com.cathay.apigateway.filter;
 
-import com.cathay.apigateway.entity.EndpointsEntity;
-import com.cathay.apigateway.entity.RateLimitEntity;
+import com.cathay.apigateway.entity.EndpointEntity;
+import com.cathay.apigateway.entity.RateLimitRuleEntity;
 import com.cathay.apigateway.enums.KeyType;
 import com.cathay.apigateway.enums.RateLimitType;
 import com.cathay.apigateway.model.SlideWindowRule;
 import com.cathay.apigateway.model.ManualSlidingWindow;
-import com.cathay.apigateway.service.EndpointRegisterService;
-import com.cathay.apigateway.service.RateLimitService;
+import com.cathay.apigateway.service.EndpointService;
+import com.cathay.apigateway.service.RateLimitRuleService;
 import com.cathay.apigateway.util.CacheUtil;
 import com.cathay.apigateway.util.ErrorHandler;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,15 +33,15 @@ public class EmailBasedRateLimitGatewayFilterFactory
         extends AbstractGatewayFilterFactory<EmailBasedRateLimitGatewayFilterFactory.Config> {
     private static final String EMAIL_RATE_LIMIT_PATTERN = "Rate_Limit:EMAIL:%s";
 
-    private final EndpointRegisterService endpointRegisterService;
-    private final RateLimitService rateLimitService;
+    private final EndpointService endpointRegisterService;
+    private final RateLimitRuleService rateLimitService;
     private final ObjectMapper objectMapper;
     private final CacheUtil cacheUtil;
     private final Cache<String, ManualSlidingWindow> emailRateLimitCache;
     private final ErrorHandler errorHandler;
 
-    public EmailBasedRateLimitGatewayFilterFactory(EndpointRegisterService endpointRegisterService,
-                                                   RateLimitService rateLimitService,
+    public EmailBasedRateLimitGatewayFilterFactory(EndpointService endpointRegisterService,
+                                                   RateLimitRuleService rateLimitService,
                                                    ObjectMapper objectMapper,
                                                    CacheUtil cacheUtil,
                                                    Cache<String, ManualSlidingWindow> emailRateLimitCache,
@@ -86,7 +86,7 @@ public class EmailBasedRateLimitGatewayFilterFactory
                 return chain.filter(exchange);
             }
 
-            EndpointsEntity endpoint = endpointRegisterService.getEndpoint(uri, method).getEntity();
+            EndpointEntity endpoint = endpointRegisterService.getEndpoint(uri, method).getEntity();
             boolean isAuthEndpoint = uri.matches(rule.getPath_regex()) && rule.getMethods().contains(method);
             if (endpoint.isPublic() && isAuthEndpoint) {
                 return this.applyEmailRateLimit(exchange, chain, rule);
@@ -98,7 +98,7 @@ public class EmailBasedRateLimitGatewayFilterFactory
 
     // get email-based rate limit rule from cached list, return null if not found
     private SlideWindowRule getEmailRateLimitEntity() {
-        RateLimitEntity rate_limit = rateLimitService.getRateLimitList().stream()
+        RateLimitRuleEntity rate_limit = rateLimitService.getRateLimitList().stream()
                 .filter(rate -> rate.getKeyType() == KeyType.EMAIL
                         && rate.getType() == RateLimitType.SLIDING_WINDOW)
                 .findFirst()

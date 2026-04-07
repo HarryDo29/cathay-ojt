@@ -1,6 +1,6 @@
 package com.cathay.apigateway.core.routing;
 
-import com.cathay.apigateway.entity.EndpointsEntity;
+import com.cathay.apigateway.entity.EndpointEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Map;
@@ -15,5 +15,5 @@ public class TrieNode {
 
     String paramName = null;
 
-    Map<String, EndpointsEntity> operations = new ConcurrentHashMap<>();
+    Map<String, EndpointEntity> operations = new ConcurrentHashMap<>();
 }
