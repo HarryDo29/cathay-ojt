@@ -682,6 +682,7 @@ access-token:
   expire: ${access-token.expire}
 
 jdbc:
+  driver: ${driver_db}
   database: ${postgres_db}
   username: ${postgres_user}
   password: ${postgres_password}

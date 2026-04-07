@@ -54,8 +54,7 @@ public class CorsGatewayConfig {
         corsConfiguration.setAllowCredentials(true); // Allow credentials such as cookies
         corsConfiguration.setMaxAge(3600L); // Cache pre-flight response for 1 hour
         // Register CORS configuration
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return new CorsWebFilter(source);
     }

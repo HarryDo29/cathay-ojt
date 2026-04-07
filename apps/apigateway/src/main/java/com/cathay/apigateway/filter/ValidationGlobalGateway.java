@@ -169,11 +169,11 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // PHASE 3: DETAILED HEADER VALIDATION
         // ============================================
         // Build set of allowed header IDs for this endpoint for O(1) lookup
-        Map<String, HeaderRuleEntity> allowedHeaderRules = new HashMap<>(Map.of());
+        Map<String, HeaderRuleEntity> headerRules = new HashMap<>(Map.of());
         for (EndpointHeaderRuleEntity rule : endpointHeaderRules) {
             HeaderRuleEntity headerRule = headerRuleCache.get(rule.getHeader_rule_id().toString());
             if (headerRule != null) {
-                allowedHeaderRules.put(headerRule.getName().toLowerCase(), headerRule);
+                headerRules.put(headerRule.getName().toLowerCase(), headerRule);
             }
         }
 
@@ -187,7 +187,7 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
             }
 
             // Get header rule by name (case-insensitive)
-            HeaderRuleEntity headerRule = allowedHeaderRules.get(headerName.toLowerCase());
+            HeaderRuleEntity headerRule = headerRules.get(headerName.toLowerCase());
             
             // Skip if header not in our rules (allow unknown headers)
             if (headerRule == null) {
