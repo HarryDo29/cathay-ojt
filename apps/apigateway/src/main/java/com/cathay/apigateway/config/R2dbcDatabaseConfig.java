@@ -47,10 +47,10 @@ public class R2dbcDatabaseConfig extends AbstractR2dbcConfiguration {
         ConnectionFactory factory = ConnectionFactories.get(options);
 
         ConnectionPoolConfiguration poolConfig = ConnectionPoolConfiguration.builder(factory)
-                .initialSize(0)
-                .maxSize(2)
-                .maxIdleTime(Duration.ofMinutes(1))
-                .validationQuery("SELECT 1")
+                .initialSize(0) // khởi tạo 0 connection
+                .maxSize(2) // tối đa 2 connection
+                .maxIdleTime(Duration.ofMinutes(1)) // thời gian chờ connection
+                .validationQuery("SELECT 1") // query để kiểm tra connection có hoạt động không
                 .build();
 
         return new ConnectionPool(poolConfig);

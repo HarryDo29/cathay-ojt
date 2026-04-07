@@ -26,8 +26,8 @@ public class GatewayConfigReloadService {
     private final ApplicationEventPublisher eventPublisher;
 
     public Mono<Void> reloadAll() {
-        pathTrie.clear();
-
+        // Load all data from DB first; only clear and apply cache if everything succeeds.
+        // This prevents a partial/empty cache state when DB errors occur mid-reload.
         return serviceRegistryService.loadServices()
                 .then(endpointService.loadEndpoints())
                 .then(filterService.loadFilters())
@@ -41,6 +41,7 @@ public class GatewayConfigReloadService {
                 .then(rateLimitRuleService.loadRateLimits())
                 .then(circuitBreakerRuleService.loadAllCircuitBreakers())
                 .doOnSuccess(v -> {
+                    pathTrie.clear();
                     eventPublisher.publishEvent(new RefreshRoutesEvent(this));
                 });
     }
