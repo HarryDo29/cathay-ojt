@@ -88,20 +88,22 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         log.info("Validating endpoint {} result: {}", path, result.toString());
         if (result.getStatus() != Status.FOUND) {
             log.warn("Endpoint not found: {} {}", method, path);
-            return errorHandler.writeError(exchange,
-                    new NotFoundException("Endpoint not found"),
-                    HttpStatus.NOT_FOUND
-            );
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.NOT_FOUND,
+                    path,
+                    "Not Found",
+                    "Endpoint not found");
         }
         
         EndpointEntity endpoint = result.getEntity();
         log.info("Endpoint: {}", endpoint);
         if (!endpoint.isEnabled()) {
             log.warn("Endpoint disabled: {} {}", method, path);
-            return errorHandler.writeError(exchange,
-                    new NotFoundException("Endpoint is not available"),
-                    HttpStatus.NOT_FOUND
-            );
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.NOT_FOUND,
+                    path,
+                    "Not Found",
+                    "Endpoint not available");
         }
 
         // 1.2 Validate by HTTP method
@@ -115,9 +117,11 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         MultiValueMap<String, String> params = req.getQueryParams();
         if (params.size() > limitPropertiesConfig.getMax_query_params()) {
             log.warn("Too many query params: {} > {}", params.size(), limitPropertiesConfig.getMax_query_params());
-            return errorHandler.writeError(exchange,
-                    new RuntimeException("Too many query parameters"),
-                    HttpStatus.BAD_REQUEST);
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.BAD_REQUEST,
+                    path,
+                    "Bad Request",
+                    "Too many query parameters");
         }
 
         // 1.4 Validate request id header (add if missing)
@@ -156,11 +160,11 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
                 String headerValue = headers.getFirst(headerRule.getName());
                 if (headerValue == null || headerValue.isBlank()) {
                     log.warn("Missing required header '{}' for {} {}", headerRule.getName(), method, path);
-                    return errorHandler.writeError(
-                            exchange,
-                            new AuthenticationException("Missing required header: " + headerRule.getName()),
-                            HttpStatus.UNAUTHORIZED
-                    );
+                    return errorHandler.writeJsonError(exchange,
+                            HttpStatus.UNAUTHORIZED,
+                            path,
+                            "Unauthorized",
+                            "Missing required header: " + headerRule.getName());
                 }
             }
         }
@@ -214,16 +218,20 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // Content-Length = -1 means not present or chunked encoding
         if (length <= 0) {
             log.warn("Missing or invalid Content-Length header");
-            return errorHandler.writeError(exchange,
-                    new RuntimeException("Body required with valid Content-Length header"),
-                    HttpStatus.BAD_REQUEST);
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.UNAUTHORIZED,
+                    req.getPath().toString(),
+                    "Bad request",
+                    "Body required with valid Content-Length header");
         }
         
         if (length > maxSize) {
             log.warn("Payload too large: {} > {}", length, maxSize);
-            return errorHandler.writeError(exchange,
-                    new RuntimeException("Payload too large"),
-                    HttpStatus.PAYLOAD_TOO_LARGE);
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.PAYLOAD_TOO_LARGE,
+                    req.getPath().toString(),
+                    "Bad request",
+                    "Payload too large");
         }
 
         // Validate Content-Type if required
@@ -234,9 +242,11 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
                  !contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED) &&
                  !contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA))) {
                 log.warn("Unsupported Content-Type: {}", contentType);
-                return errorHandler.writeError(exchange,
-                        new UnsupportedMediaTypeException("Unsupported Content-Type"),
-                        HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                        req.getPath().toString(),
+                        "Bad request",
+                        "Unsupported Content-Type");
             }
         }
         
@@ -257,24 +267,23 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
         // 1. Check for CRLF injection (most critical - check first)
         if (headerValue.contains("\r") || headerValue.contains("\n")) {
             log.warn("CRLF injection attempt in header '{}'", headerName);
-            return errorHandler.writeError(
-                    exchange,
-                    new RuntimeException("Header '" + headerName + "' contains invalid characters"),
-                    HttpStatus.BAD_REQUEST
-            );
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.BAD_REQUEST,
+                    exchange.getRequest().getPath().toString(),
+                    "Bad request",
+                    "Header '" + headerName + "' contains invalid characters");
         }
 
         // 2. Validate max length
         if (headerValue.length() > headerRule.getMax_length()) {
             log.warn("Header '{}' exceeds max length: {} > {}", 
                     headerName, headerValue.length(), headerRule.getMax_length());
-            return errorHandler.writeError(
-                    exchange,
-                    new RuntimeException(String.format(
-                        "Header '%s' exceeds maximum length of %d characters (current: %d)",
-                        headerName, headerRule.getMax_length(), headerValue.length()
-                    )),
-                    HttpStatus.BAD_REQUEST
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.BAD_REQUEST,
+                    exchange.getRequest().getPath().toString(),
+                    "Bad request",
+                    String.format("Header '%s' exceeds maximum length of %d characters (current: %d)",
+                            headerName, headerRule.getMax_length(), headerValue.length())
             );
         }
 
@@ -285,12 +294,12 @@ public class ValidationGlobalGateway implements GlobalFilter, Ordered {
             log.warn("Header '{}' failed pattern validation. Value: {}",
                     headerName,
                     headerValue.length() > 50 ? headerValue.substring(0, 50) + "..." : headerValue);
-            return errorHandler.writeError(
-                    exchange,
-                    new RuntimeException(String.format("Header '%s' has invalid format. Expected: %s",
-                            headerName, headerRule.getDescription()
-                    )),
-                    HttpStatus.BAD_REQUEST
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.BAD_REQUEST,
+                    exchange.getRequest().getPath().toString(),
+                    "Bad request",
+                    String.format("Header '%s' has invalid format. Expected: %s",
+                            headerName, headerRule.getDescription())
             );
         }
         log.debug("Header '{}' passed pattern validation", headerName);

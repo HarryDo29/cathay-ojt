@@ -123,9 +123,11 @@ public class EmailBasedRateLimitGatewayFilterFactory
                 log.info("Email {} passed rate limit check, allowing request to proceed", email);
                 return chain.filter(exchange);
             }
-            return errorHandler.writeError(exchange,
-                    new IllegalArgumentException("Too many requests for email: " + email),
-                    HttpStatus.TOO_MANY_REQUESTS);
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    exchange.getRequest().getPath().toString(),
+                    "Too many request",
+                    String.format("Too many requests for email: %s", email));
         }
 
         return ServerWebExchangeUtils.cacheRequestBody(exchange, serverHttpRequest -> {
@@ -140,9 +142,11 @@ public class EmailBasedRateLimitGatewayFilterFactory
                 .flatMap(bodyString -> {
                     try {
                         if (bodyString == null || bodyString.isBlank()) {
-                            return errorHandler.writeError(exchange,
-                                    new IllegalArgumentException("Email required: use JSON body field \"email\" or query ?email="),
-                                    HttpStatus.BAD_REQUEST);
+                            return errorHandler.writeJsonError(exchange,
+                                    HttpStatus.BAD_REQUEST,
+                                    exchange.getRequest().getPath().toString(),
+                                    "Bad Request",
+                                    "Email required: use JSON body field \"email\" ");
                         }
                         JsonNode rootNode = objectMapper.readTree(bodyString);
                         JsonNode emailNode = rootNode.path("email");
@@ -158,19 +162,24 @@ public class EmailBasedRateLimitGatewayFilterFactory
                                 return chain.filter(exchange.mutate().request(serverHttpRequest).build());
                             }
 
-                            return errorHandler.writeError(exchange,
-                                    new IllegalArgumentException("Too many requests for email: " + email),
-                                    HttpStatus.TOO_MANY_REQUESTS
-                            );
+                            return errorHandler.writeJsonError(exchange,
+                                    HttpStatus.TOO_MANY_REQUESTS,
+                                    exchange.getRequest().getPath().toString(),
+                                     "Too many request",
+                                     String.format("Too many requests for email: %s", email));
                         }
-                        return errorHandler.writeError(exchange,
-                                new IllegalArgumentException("Email not found in request body"),
-                                HttpStatus.BAD_REQUEST);
+                        return errorHandler.writeJsonError(exchange,
+                                HttpStatus.BAD_REQUEST,
+                                exchange.getRequest().getPath().toString(),
+                                "Bad Request",
+                                "Email not found in request body");
                     } catch (Exception e) {
                         log.error("Error reading body JSON: {}", e.getMessage());
-                        return errorHandler.writeError(exchange,
-                                new IllegalArgumentException("Invalid JSON body: " + e.getMessage()),
-                                HttpStatus.BAD_REQUEST);
+                        return errorHandler.writeJsonError(exchange,
+                                HttpStatus.BAD_REQUEST,
+                                exchange.getRequest().getPath().toString(),
+                                "Bad Request",
+                                String.format("Invalid JSON body: %s", e.getMessage()));
                     }
                 });
             });

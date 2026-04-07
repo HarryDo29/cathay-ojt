@@ -60,16 +60,20 @@ public class AuthenticationGatewayFilterFactory extends
                     .get(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || authHeader.isEmpty()) {
-                return errorHandler.writeError(exchange,
-                        new RuntimeException("Missing Authorization header"),
-                        HttpStatus.UNAUTHORIZED);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.UNAUTHORIZED,
+                        path,
+                        "Unauthorized",
+                        "Missing Authorization header");
             }
 
             // validate authorization (`Bearer ...` ?) ()
             if (!authHeader.getFirst().startsWith("Bearer ")) {
-                return errorHandler.writeError(exchange,
-                        new RuntimeException("Missing Authorization header"),
-                        HttpStatus.UNAUTHORIZED);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.UNAUTHORIZED,
+                        path,
+                        "Unauthorized",
+                        "Missing Authorization header");
             }
 
             // Extract and verify JWT token
@@ -78,15 +82,21 @@ public class AuthenticationGatewayFilterFactory extends
                 log.info("extract jwt");
                 claim = jwtUtil.extractToken(authHeader.getFirst().substring(7));
             } catch (Exception e) {
-                return errorHandler.writeError(exchange, e, HttpStatus.UNAUTHORIZED);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.UNAUTHORIZED,
+                        path,
+                        "Unauthorized",
+                        e.getMessage());
             }
 
             // check expiration
             val expiration = claim.getExpiration();
             if (expiration.before(new Date())) {
-                return errorHandler.writeError(exchange,
-                        new RuntimeException("Access token has expired"),
-                        HttpStatus.UNAUTHORIZED);
+                return errorHandler.writeJsonError(exchange,
+                        HttpStatus.UNAUTHORIZED,
+                        path,
+                        "Unauthorized",
+                        "Access token has expired");
             }
 
             // take account in4 from token

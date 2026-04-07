@@ -5,6 +5,9 @@ services:
   #   image: redis:7
   #   container_name: apigateway-redis
   #   command: redis-server --appendonly yes
+  # apigateway-postgres:
+  #   image: postgres:17
+  #   container_name: apigateway-postgres
   #   ports:
   #     - "6379:6379"
   #   volumes:
@@ -43,6 +46,12 @@ services:
       - "8080:8080"
     environment:
       TZ: Asia/Ho_Chi_Minh
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # ── identity ────────────────────────────────────────
   identity-postgres:

@@ -14,7 +14,6 @@ public class ManualTokenBucket {
     public ManualTokenBucket(long capacity, long replenishRate) {
         this.capacity = capacity;
         this.replenishRate = replenishRate;
-
         this.stateRef = new AtomicReference<>(new BucketState(capacity, System.nanoTime()));
     }
 
