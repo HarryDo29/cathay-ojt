@@ -25,35 +25,34 @@ public class ErrorHandler {
     // ObjectMapper for JSON serialization
     private final ObjectMapper objectMapper;
 
-    public Mono<Void> writeError(ServerWebExchange exchange, Exception e, HttpStatus httpStatus) {
-        String path = exchange.getRequest().getURI().getPath();
-        
-        if (e instanceof CallNotPermittedException) {
-            logger.warn("[CircuitBreaker] Circuit OPEN for path: {} - {}", path, e.getMessage());
-            return writeJsonError(exchange, HttpStatus.SERVICE_UNAVAILABLE, path,
-                    "Circuit Breaker Open",
-                    "Service is temporarily unavailable due to repeated failures. Please try again later.");
-        }
-        
-        if (e instanceof TimeoutException) {
-            logger.error("[Gateway] Timeout for path: {}", path);
-            return writeJsonError(exchange, HttpStatus.GATEWAY_TIMEOUT, path,
-                    "Gateway Timeout",
-                    "The service took too long to respond");
-        }
-        
-        if (e instanceof ConnectException) {
-            logger.error("[Gateway] Connection failed for path: {}", path);
-            return writeJsonError(exchange, HttpStatus.SERVICE_UNAVAILABLE, path,
-                    "Service Unavailable",
-                    "Unable to connect to the service");
-        }
-        
-        logger.error("Gateway error: path={}, status={}, message={}", path, httpStatus, e.getMessage(), e);
-        return writeJsonError(exchange, httpStatus, path,
-                httpStatus.getReasonPhrase(),
-                httpStatus.is5xxServerError() ? "Internal Server Error" : e.getMessage());
-    }
+//    public Mono<Void> writeError(ServerWebExchange exchange, Exception e, HttpStatus httpStatus) {
+//        String path = exchange.getRequest().getURI().getPath();
+//
+//        if (e instanceof CallNotPermittedException) {
+//            logger.warn("[CircuitBreaker] Circuit OPEN for path: {} - {}", path, e.getMessage());
+//            return writeJsonError(exchange, HttpStatus.SERVICE_UNAVAILABLE, path,
+//                    "Circuit Breaker Open",
+//                    "Service is temporarily unavailable due to repeated failures. Please try again later.");
+//        }
+//
+//        if (e instanceof TimeoutException) {
+//            logger.error("[Gateway] Timeout for path: {}", path);
+//            return writeJsonError(exchange, HttpStatus.GATEWAY_TIMEOUT, path,
+//                    "Gateway Timeout",
+//                    "The service took too long to respond");
+//        }
+//
+//        if (e instanceof ConnectException) {
+//            logger.error("[Gateway] Connection failed for path: {}", path);
+//            return writeJsonError(exchange, HttpStatus.SERVICE_UNAVAILABLE, path,
+//                    "Service Unavailable",
+//                    "Unable to connect to the service");
+//        }
+//
+//        return writeJsonError(exchange, httpStatus, path,
+//                httpStatus.getReasonPhrase(),
+//                httpStatus.is5xxServerError() ? "Internal Server Error" : e.getMessage());
+//    }
 
     public Mono<Void> writeJsonError(ServerWebExchange exchange,
                                      HttpStatus httpStatus,

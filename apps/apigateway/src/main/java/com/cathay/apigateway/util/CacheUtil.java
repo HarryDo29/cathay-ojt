@@ -36,9 +36,9 @@ public class CacheUtil {
         return false;
     }
 
-    public boolean addToBlackListCache(String key){
+    public void addToBlackListCache(String key){
         blackListCache.put(key, true);
-        return true;
+        log.error("Added to Blacklist Cache: {}", key);
     }
 
     public boolean checkAbuseCounterCache(String key) {

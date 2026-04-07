@@ -11,7 +11,7 @@ Hướng dẫn này giúp người mới pull repo có thể build và chạy to
 
 ```bash
 git clone https://github.com/HarryDo29/cathay-ojt.git
-cd cathay
+cd cathay-ojt
 ```
 
 ## Bước 2: Tạo file cấu hình
@@ -148,8 +148,8 @@ curl http://localhost:8080/api/v1/order-service/orders \
 
 | Role  | Email             | Password |
 |-------|-------------------|----------|
-| Admin | admin@example.com | admin123 |
-| User  | user@example.com  | user123  |
+| Admin | admin@cathay.com | admin123 |
+| User  | user@cathay.com  | user123  |
 
 ## Các lệnh hữu ích
 

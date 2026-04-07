@@ -60,8 +60,11 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
 
         if (ip.equals("unknown") || ip.isEmpty()) {
             log.warn("Unable to determine client IP for request: {}", request.getURI());
-            return errorHandler.writeError(exchange,
-                    new NotFoundException("Missing IP Address"), HttpStatus.FORBIDDEN);
+            return errorHandler.writeJsonError(exchange,
+                    HttpStatus.FORBIDDEN,
+                    request.getPath().toString(),
+                     "Forbidden",
+                    "Missing IP Address");
         }
 
         TokenBucketRule rule = findIpRateLimitConfig();
@@ -74,8 +77,11 @@ public class IPBasedRateLimitGlobalFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
         log.warn("IP {} blocked by rate limit rule", ip);
-        return errorHandler.writeError(exchange,
-                new NotFoundException("IP Rate limit exceeded"), HttpStatus.TOO_MANY_REQUESTS);
+        return errorHandler.writeJsonError(exchange,
+                HttpStatus.TOO_MANY_REQUESTS,
+                request.getPath().toString(),
+                "Too Many Requests",
+                "Rate limit exceeded");
     }
 
     private boolean tryAccess(String ip, TokenBucketRule rule){
